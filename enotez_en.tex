@@ -1,0 +1,267 @@
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[toc=bib]{cnpkgdoc}
+\docsetup{
+  pkg      = enotez ,
+  code-box = {
+    backgroundcolor  = gray!7!white ,
+    skipbelow        = .6\baselineskip plus .5ex minus .5ex ,
+    skipabove        = .6\baselineskip plus .5ex minus .5ex ,
+    roundcorner      = 3pt ,
+  } ,
+  gobble   = 1
+}
+
+\addcmds{
+  chapter,
+  cmd,
+  DeclareInstance,
+  DeclareTemplateInterface,
+  endnote,
+  endnotemark,
+  endnotetext,
+  enmark,
+  phantomsection,
+  printendnotes,
+  textsuperscript
+}
+
+\DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
+
+% Layout:
+\usepackage[osf]{libertine}
+\cnpkgcolors{
+  main   => cnpkgred ,
+  key    => yellow!40!brown ,
+  module => cnpkgblue ,
+  link   => black!90
+}
+\renewcommand*\othersectionlevelsformat[3]{%
+  \textcolor{main}{#3\autodot}\enskip}
+\renewcommand*\partformat{%
+  \textcolor{main}{\partname~\thepart\autodot}}
+\usepackage{fnpct}
+\AdaptNote\endnote\multendnote
+\usepackage{embrac}[2012/06/29]
+\ChangeEmph{[}[,.02em]{]}[.055em,-.08em]
+\ChangeEmph{(}[-.01em,.04em]{)}[.04em,-.05em]
+
+\ExplSyntaxOn
+\NewDocumentCommand \Default {g}
+  {
+    \hfill\llap
+      {
+        \IfNoValueTF { #1 }
+          {(initially~empty)}
+          {Default:~\code{#1}}
+      }
+    \newline
+  }
+\ExplSyntaxOff
+
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\addbibresource{\jobname.bib}
+
+% rudimentary solution for a `maintainer' field:
+\DeclareFieldFormat{authortype}{\mkbibparens{#1}}
+\renewbibmacro*{author}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\printnames{author}%
+     \iffieldundef{authortype}
+       {}
+       {\setunit{\space}%
+	\usebibmacro{authorstrg}}}
+    {}}
+
+\usepackage{filecontents}
+\begin{filecontents*}{\jobname.bib}
+@software{endnotes,
+  title      = {endnotes},
+  author     = {Robin Fairbairns},
+  authortype = {current maintainer},
+  date       = {2003-01-15},
+  version    = {NA},
+  url        = {http://www.ctan.org/pkg/endnotes},
+  urldate    = {2012-07-03}
+}
+\end{filecontents*}
+
+
+\begin{document}
+
+\section{Licence and Requirements}
+Permission is granted to copy, distribute and/or modify this software under the
+terms of the LaTeX Project Public License, version 1.3 or later
+(\url{http://www.latex-project.org/lppl.txt}). The package has the status
+``maintained.''
+
+\enotez loads and needs the following packages: \paket{expl3},
+\paket{xparse}, \paket{xtemplate} and \paket{l3keys2e}.
+
+\section{Motivation}
+\enotez is a new implementation of endnotes for \LaTeXe\ since the \paket{endnotes}
+package~\cite{endnotes} has some deficiencies. Nested endnotes, for example, are
+not supported, neither is \paket{hyperref}.
+
+\enotez enables nested endnotes properly and has another mechanism of customizing
+the list of endnotes which is easily extendable.
+
+\section{Usage}
+\subsection{Placing the Notes}
+The usage is simple: use \cmd{endnote} in the text where you want to place the
+note mark.
+\begin{beschreibung}
+ \befehl{endnote}[<mark>]{<text>} Add an endnote in the text.
+\end{beschreibung}
+\begin{beispiel}
+ This is some text\endnote{With an endnote.}.
+\end{beispiel}
+There's not really much more to it. It is possible to add a custom mark by
+using the optional argument but that should be needed too often. \cmd{endnote}
+works fine inside tables, minipages, floats\ldots. Endnotes can also be nested.
+\begin{beispiel}
+ This is some text\endnote{With another endnote\endnote{This is a
+ nested endnote!}.}.
+\end{beispiel}
+
+\subsection{Printing the Notes}
+The notes are printed by using the command \cmd{printendnotes}.
+\begin{beschreibung}
+ \befehl{printendnotes}*[<style>] Print the list of endnotes. \code{<style>} is
+   one of the instances explained in section~\ref{ssec:customizing_the_list}.
+\end{beschreibung}
+If used without argument it prints all notes set so far with \cmd{endnote}. The
+current list will then be cleared. All endnotes set after it are stored again
+for the next usage of \cmd{printendnotes}. The starred version will print
+\emph{all} endnotes but shouldn't be used more than once if you have nested
+endnotes.
+
+It may take several compilation runs until all notes are printed correctly. In
+a first run they are written to the \code{aux} file. In the second run they are
+available to \cmd{printendnotes}. If you have nested endnotes they will be written
+to the \code{aux} file the first time they're printed with \cmd{printendnotes}
+which means you might have to compile your file once more. If you change any of
+the endnotes or add another one you again will need at least two runs. \enotez
+tries to warn you in these cases by invoking \LaTeX's warning
+
+\code{Label(s) may have changed. Rerun to get cross-references right.}
+
+\noindent but may not catch all cases.
+
+\section{Options}
+\subsection{Package Options}
+\enotez has a few package options. They should be pretty self-explanatory.
+\begin{beschreibung}
+ \Option{list-name}{<list name>}\Default{Notes}
+   The name of the notes list. This name is used for the heading of the list.
+ \Option{reset}{\default{true}|false}\Default{false}
+   If set to \code{true} the notes numbers will start from 1 again after
+   \cmd{printendnotes} has been invoked.
+ \Option{counter-format}{arabic|alph|Alph|roman|Roman}\Default{arabic}
+   Change the format of the endnote counter.
+ \Option{totoc}{section|chapter|false}\Default{false}
+   Add an entry to the table of contents.
+ \Option{list-style}{<style>}\Default{plain}
+   Sets the default list style, see section \ref{ssec:customizing_the_list} for
+   details.
+\end{beschreibung}
+
+\subsection{Customizing the List}\label{ssec:customizing_the_list}
+The list is typeset with \paket{xtemplate}'s template mechanism. \enotez declares
+the object \code{enotez-list} and two templates for it, the template \code{paragraph}
+and the template \code{list}.
+
+\subsubsection{The \code{paragraph} Template}
+The \code{paragraph} template's interface is defined as follows:
+\begin{beispiel}[code only]
+ \DeclareTemplateInterface{enotez-list}{paragraph}{1}
+   {
+     heading       : function 1 = \section*{#1}   ,
+     format        : tokenlist  = \footnotesize   ,
+     number        : function 1 = \enmark{#1}     ,
+     number-format : tokenlist  = \normalfont     ,
+     notes-sep     : length     = .5\baselineskip ,
+   }
+\end{beispiel}
+The parameters functions are these:
+\begin{description}
+ \item[\code{heading}] The command with which the heading is typeset.
+ \item[\code{format}] The format of the whole list.
+ \item[\code{number}] The command that is used to typeset the numbers of the
+   notes. The command \cmd{enmark} is explained soon.
+ \item[\code{numbers-format}] The format of the numbers.
+ \item[\code{notes-sep}] Additional space between the notes.
+\end{description}
+
+\enotez uses this template to define the instance \code{plain}:
+\begin{beispiel}[code only]
+ \DeclareInstance{enotez-list}{plain}{paragraph}{}
+\end{beispiel}
+This is the default style of the list.
+
+You can easily define your own instances, though:
+\begin{beispiel}[code only]
+ \DeclareInstance{enotez-list}{custom}{paragraph}
+   {
+     heading   = \chapter*{#1}        ,
+     notes-sep = \baselineskip        ,
+     format    = \normalfont          ,
+     number    = \textsuperscript{#1}
+   }
+\end{beispiel}
+This would use a chapter heading for the title, separate the notes with
+\verb=\baselineskip= and typeset them with \verb=\normalfont=. The numbers would
+be typeset with \verb=\textsuperscript=. You could now use it like this:
+\begin{beispiel}[code only]
+ \printendnotes[custom]
+\end{beispiel}
+
+If you wanted superscripted numbers, you could also redefine \cmd{enmark}. 
+\begin{beschreibung}
+ \befehl{enmark} is defined like this: \verb=\newcommand*\enmark[1]{#1.}=
+\end{beschreibung}
+
+\subsubsection{The \code{list} Template}
+The \code{paragraph} template's interface is defined as follows:
+\begin{beispiel}[code only]
+ \DeclareTemplateInterface{enotez-list}{list}{1}
+   {
+     heading       : function 1 = \section*{#1} ,
+     format        : tokenlist  = \footnotesize ,
+     number        : function 1 = \enmark{#1}   ,
+     number-format : tokenlist  = \normalfont   ,
+     list-type     : tokenlist  = description   ,
+   }
+\end{beispiel}
+This template uses a list to typeset the notes. As you can see the default list
+is a \code{description} list.
+
+\enotez defines two instances of this template:
+\begin{beispiel}[code only]
+ \DeclareInstance{enotez-list}{description}{list}{}
+ \DeclareInstance{enotez-list}{itemize}{list}{list-type = itemize }
+\end{beispiel}
+They're available through \cmd{printendnotes}[description] and
+\cmd{printendnotes}[itemize], respectively.
+
+Again you can define your own instances using whatever list you want, possibly
+one defined with the power \paket{enumitem}.
+
+\section{hyperref Support}
+If \paket{hyperref} is loaded and you are using the option \key{totoc} (see
+p~\ref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
+
+If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
+endnote marks are linked to the respective entries in the list.
+
+\printendnotes[addsec]
+
+{\EmbracOff\printbibliography}
+
+\end{document}

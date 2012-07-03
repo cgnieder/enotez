@@ -1,0 +1,383 @@
+% --------------------------------------------------------------------------
+% the ENOTEZ package
+% 
+%   Typeset Acronyms
+% 
+% --------------------------------------------------------------------------
+% Clemens Niederberger
+% Web:    https://bitbucket.org/cgnieder/enotez/
+% E-Mail: contact@mychemistry.eu
+% --------------------------------------------------------------------------
+% Copyright 2011-2012 Clemens Niederberger
+% 
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+% 
+% This work has the LPPL maintenance status `maintained'.
+% 
+% The Current Maintainer of this work is Clemens Niederberger.
+% --------------------------------------------------------------------------
+% The enotez package consists of the files
+%  - enotez.sty, enotez_en.tex, enotez_en.pdf, README
+% --------------------------------------------------------------------------
+% If you have any ideas, questions, suggestions or bugs to report, please
+% feel free to contact me.
+% --------------------------------------------------------------------------
+\RequirePackage{ expl3 , xparse , l3keys2e , xtemplate }
+\ProvidesExplPackage
+  {enotez}
+  {2012/07/03}
+  {0.1}
+  {Endnotes for LaTeX2e}
+
+% variables:
+\bool_new:N \l_enotez_print_note_bool
+\bool_new:N \l_enotez_reset_bool
+\bool_new:N \l_enotez_totoc_bool
+\bool_new:N \l_enotez_hyperref_bool
+\bool_new:N \l_enotez_hyperfootnotes_bool
+\tl_new:N   \l_enotez_totoc_tl
+\tl_new:N   \l_enotez_list_name_tl
+\tl_set:Nn  \l_enotez_list_name_tl { Notes }
+\tl_new:N   \l_enotez_endnote_text_tl
+\tl_new:N   \l_enotez_endnote_mark_tl
+\tl_new:N   \l_enotez_list_instance_tl
+\tl_set:Nn  \l_enotez_list_instance_tl { plain }
+\int_new:N  \g_enotez_endnote_id_int
+\int_zero:N \g_enotez_endnote_id_int
+\int_new:N  \g_enotez_endnote_mark_int
+\int_zero:N \g_enotez_endnote_mark_int
+\int_new:N  \g_enotez_list_printed_int
+\int_zero:N \g_enotez_list_printed_int
+\prop_new:N \g_enotez_endnote_text_prop
+\prop_new:N \g_enotez_endnote_mark_prop
+\prop_new:N \g_enotez_endnote_sect_prop
+
+\cs_new_eq:NN \enotez_counter_format:n \int_to_arabic:n
+\cs_generate_variant:Nn \enotez_counter_format:n { V }
+
+\keys_define:nn { enotez }
+  {
+    list-name      .tl_set:N           = \l_enotez_list_name_tl    ,
+    reset          .bool_set:N         = \l_enotez_reset_bool      ,
+    counter-format .choice_code:n      =
+      \cs_set_eq:Nc \enotez_counter_format:n { int_to_ \l_keys_choice_tl :n } ,
+    counter-format .generate_choices:n =
+      { arabic , alph , Alph , roman , Roman }                      ,
+    totoc          .choice_code:n      =
+      \tl_if_eq:VnTF \l_keys_choice_tl { false }
+        { \bool_set_false:N \l_enotez_totoc_bool }
+        {
+          \bool_set_true:N \l_enotez_totoc_bool
+          \tl_set_eq:NN \l_enotez_totoc_tl \l_keys_choice_tl
+        }                                                           ,
+    totoc          .generate_choices:n =
+      { section , chapter , false }                                 ,
+    list-style     .tl_set:N           = \l_enotez_list_instance_tl ,
+  }
+\cs_generate_variant:Nn \tl_if_eq:nnTF { V }
+
+\cs_new:Npn \enotez_write_mark:nn #1#2
+  {
+    \bool_if:NTF \l_enotez_hyperfootnotes_bool
+      { \textsuperscript { \hyperlink { enz.#1 } { #2 } } }
+      { \textsuperscript { #2 } }
+  }
+
+\cs_new:Npn \enotez_endnote:nn #1#2
+  {
+    \int_gincr:N \g_enotez_endnote_id_int
+    \IfNoValueTF { #1 }
+      {
+        \int_gincr:N \g_enotez_endnote_mark_int
+        \enotez_write_mark:nn
+          { \int_use:N \g_enotez_endnote_id_int }
+          { \enotez_counter_format:V \g_enotez_endnote_mark_int }
+        \enotez_save_note:xxxn
+          { \int_use:N \g_enotez_endnote_id_int }
+          { \int_use:N \g_enotez_endnote_mark_int }
+          { \int_use:N \g_enotez_list_printed_int }
+          { #2 }
+      }
+      {
+        \enotez_write_mark:nn { \int_use:N \g_enotez_endnote_id_int } { #1 }
+        \enotez_save_note:xnxn
+          { \int_use:N \g_enotez_endnote_id_int }
+          { #1 }
+          { \int_use:N \g_enotez_list_printed_int }
+          { #2 }
+      }
+  }
+
+% \cs_new:Npn \enotez_endnote_mark:n #1
+%   {
+%     \IfNoValueTF { #1 }
+%       {
+%         \int_gincr:N \g_enotez_endnote_mark_int
+%         \textsuperscript { \enotez_counter_format:V \g_enotez_endnote_mark_int }
+%       }
+%       { \textsuperscript { #1 } }
+%     \int_gincr:N \g_enotez_endnote_id_int
+%   }
+% 
+% \cs_new:Npn \enotez_endnote_mark_aux:w [#1]
+%   { \enotez_endnote_mark:n { #1 } }
+% 
+% \cs_new:Npn \endnotemark
+%  {
+%    \peek_meaning_ignore_spaces:NTF [
+%      { \enotez_endnote_mark_aux:w }
+%      { \enotez_endnote_mark:n { \NoValue } }
+%  }
+% 
+% \cs_new:Npn \enotez_endnote_text:nn #1#2
+%   {
+%     \IfNoValueTF { #1 }
+%       {
+%         \enotez_save_note:xxxn
+%           { \int_use:N \g_enotez_endnote_id_int }
+%           { \int_use:N \g_enotez_endnote_mark_int }
+%           { \int_use:N \g_enotez_list_printed_int }
+%           { #2 }
+%       }
+%       {
+%         \enotez_save_note:xnxn
+%           { \int_use:N \g_enotez_endnote_id_int }
+%           { #1 }
+%           { \int_use:N \g_enotez_list_printed_int }
+%           { #2 }
+%       }
+%   }
+% 
+% \cs_new:Npn \enotez_endnote_text_aux:w [#1]
+%   { \enotez_endnote_text:nn { #1 } }
+% 
+% \cs_new:Npn \endnotetext
+%   {
+%     \peek_meaning_ignore_spaces:NTF [
+%       { \enotez_endnote_text_aux:w }
+%       { \enotez_endnote_text:nn { \NoValue } }
+%   }
+
+% #1 global id
+% #2 mark
+% #3 section
+% #4 text
+\cs_new:Npn \enotez_save_note:nnnn #1#2#3#4
+  { \iow_now:Nn \@auxout { \enotez@note { #1 } { #2 } { #3 } { #4 } } }
+\cs_generate_variant:Nn \enotez_save_note:nnnn { xxxn , xnxn }
+
+\cs_new:Npn \enotez@note #1#2#3#4
+  {
+    \expandafter \xdef \csname enotez@#1@note \endcsname { #2 }
+    \prop_gput:Nnn \g_enotez_endnote_mark_prop { #1 } { #2 }
+    \prop_gput:Nnn \g_enotez_endnote_sect_prop { #1 } { #3 }
+    \prop_gput:Nnn \g_enotez_endnote_text_prop { #1 } { #4 }
+  }
+
+\AtEndDocument
+  {
+    \cs_set:Npn \enotez@note #1#2#3#4
+      {
+        \def\reserved@a{#2}
+        \expandafter\ifx\csname enotez@#1@note \endcsname\reserved@a\else
+        \@tempswatrue\fi
+      }
+  }
+
+
+\cs_new:Npn \endnote
+  {
+    \peek_meaning_ignore_spaces:NTF [
+      { \enotez_endnote_aux:w }
+      { \enotez_endnote:nn { \NoValue } }
+  }
+
+\cs_new:Npn \enotez_endnote_aux:w [#1]#2
+  { \enotez_endnote:nn { #1 } { #2 } }
+
+\DeclareObjectType { enotez-list } { 1 }
+
+\DeclareTemplateInterface { enotez-list } { paragraph } { 1 }
+  {
+    heading       : function 1 = \section*{#1}   ,
+    format        : tokenlist  = \footnotesize   ,
+    number        : function 1 = \enmark{#1}     ,
+    number-format : tokenlist  = \normalfont     ,
+    notes-sep     : length     = .5\baselineskip ,
+  }
+
+\DeclareTemplateCode { enotez-list } { paragraph } { 1 }
+  {
+    heading       = \enotez_list_heading:n          ,
+    format        = \l_enotez_list_format_tl        ,
+    number        = \enotez_list_number:n           ,
+    number-format = \l_enotez_list_number_format_tl ,
+    notes-sep     = \l_enotez_list_notes_sep_dim    ,
+  }
+  {
+    \AssignTemplateKeys
+    \bool_if:NT \l_enotez_totoc_bool
+      {
+        \bool_if:NT \l_enotez_hyperref_bool { \phantomsection }
+        \addcontentsline { toc } { \l_enotez_totoc_tl } { \l_enotez_list_name_tl }
+      }
+    \enotez_list_heading:n { \l_enotez_list_name_tl }
+    \group_begin:
+      \tl_use:N \l_enotez_list_format_tl
+      \prop_map_inline:Nn \g_enotez_endnote_mark_prop
+        {
+          \enotez_get_note:nn { #1 } { ##1 }
+          \bool_if:NT \l_enotez_print_note_bool
+            {
+              \par\noindent
+              \llap
+                {
+                  \enotez_list_number:n
+                    {
+                      \bool_if:NT \l_enotez_hyperfootnotes_bool
+                        {
+                          \box_move_up:nn { 1em }
+                            { \hbox:n { \hypertarget { enz.##1 } { } } }
+                        }
+                      \tl_use:N \l_enotez_list_number_format_tl
+                      \token_if_eq_catcode:VNTF \l_enotez_endnote_mark_tl 1
+                        { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
+                        { \tl_use:N \l_enotez_endnote_mark_tl }
+                    }
+                  \tl_use:N \c_space_tl
+                }
+              \tl_use:N \l_enotez_endnote_text_tl
+              \par
+              \dim_compare:nT { \l_enotez_list_notes_sep_dim != 0pt }
+                { \addvspace { \l_enotez_list_notes_sep_dim } }
+            }
+        }
+    \group_end:
+  }
+
+\DeclareTemplateInterface { enotez-list } { list } { 1 }
+  {
+    heading       : function 1 = \section*{#1} ,
+    format        : tokenlist  = \footnotesize ,
+    number        : function 1 = \enmark{#1}   ,
+    number-format : tokenlist  = \normalfont   ,
+    list-type     : tokenlist  = description   ,
+  }
+
+\DeclareTemplateCode { enotez-list } { list } { 1 }
+  {
+    heading       = \enotez_list_heading:n          ,
+    format        = \l_enotez_list_format_tl        ,
+    number        = \enotez_list_number:n           ,
+    number-format = \l_enotez_list_number_format_tl ,
+    list-type     = \l_enotez_list_type_tl
+  }
+  {
+    \AssignTemplateKeys
+    \bool_if:NT \l_enotez_totoc_bool
+      {
+        \bool_if:NT \l_enotez_hyperref_bool { \phantomsection }
+        \addcontentsline { toc } { \l_enotez_totoc_tl } { \l_enotez_list_name_tl }
+      }
+    \enotez_list_heading:n { \l_enotez_list_name_tl }
+    \group_begin:
+      \tl_use:N \l_enotez_list_format_tl
+      \begin{\l_enotez_list_type_tl}
+      \prop_map_inline:Nn \g_enotez_endnote_text_prop
+        {
+          \enotez_get_note:nn { #1 } { ##1 }
+          \bool_if:NT \l_enotez_print_note_bool
+            {
+              \item
+                [
+                  \enotez_list_number:n
+                    {
+                      \bool_if:NT \l_enotez_hyperfootnotes_bool
+                        {
+                          \box_move_up:nn { 1em }
+                            { \hbox:n { \hypertarget { enz.##1 } { } } }
+                        }
+                      \tl_use:N \l_enotez_list_number_format_tl
+                      \token_if_eq_catcode:VNTF \l_enotez_endnote_mark_tl 1
+                        { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
+                        { \tl_use:N \l_enotez_endnote_mark_tl }
+                    }
+                ]
+              \tl_use:N \l_enotez_endnote_text_tl
+            }
+        }
+      \end{\l_enotez_list_type_tl}
+    \group_end:
+  }
+
+\DeclareInstance { enotez-list } { plain } { paragraph } {  }
+\DeclareInstance { enotez-list } { description } { list } {  }
+\DeclareInstance { enotez-list } { itemize } { list } { list-type = itemize }
+
+\cs_generate_variant:Nn \token_if_eq_catcode:NNTF { V }
+
+\cs_new:Npn \enotez_get_note:nn #1#2
+  {
+    \IfBooleanTF { #1 }
+      {
+        \prop_get:NnN \g_enotez_endnote_mark_prop { #2 } \l_enotez_endnote_mark_tl
+        \prop_get:NnN \g_enotez_endnote_text_prop { #2 } \l_enotez_endnote_text_tl
+        \bool_set_true:N \l_enotez_print_note_bool
+      }
+      {
+        \prop_get:NnN \g_enotez_endnote_sect_prop { #2 } \l_tmpa_tl
+        \int_compare:nTF { \l_tmpa_tl = \g_enotez_list_printed_int }
+          {
+            \bool_set_true:N \l_enotez_print_note_bool
+            \prop_gpop:NnN \g_enotez_endnote_mark_prop { #2 } \l_enotez_endnote_mark_tl
+            \prop_gpop:NnN \g_enotez_endnote_text_prop { #2 } \l_enotez_endnote_text_tl
+            \prop_gdel:Nn  \g_enotez_endnote_sect_prop { #2 }
+          }
+          { \bool_set_false:N \l_enotez_print_note_bool }
+      }
+  }
+
+\cs_new:Npn \enmark #1 { #1 . }
+
+\NewDocumentCommand \printendnotes { so }
+  {
+    \IfNoValueTF { #2 }
+      { \UseInstance { enotez-list } { \l_enotez_list_instance_tl } }
+      { \UseInstance { enotez-list } { #2 } }
+    { #1 }
+    \bool_if:NT \l_enotez_reset_bool
+      { \int_gzero:N \g_enotez_endnote_mark_int }
+    \int_gincr:N \g_enotez_list_printed_int
+  }
+
+\ProcessKeysOptions { enotez }
+
+\AtBeginDocument
+  {
+    \@ifpackageloaded { hyperref }
+      {
+        \bool_set_true:N \l_enotez_hyperref_bool
+        \ifHy@hyperfootnotes
+          \bool_set_true:N \l_enotez_hyperfootnotes_bool
+        \else
+          \bool_set_false:N \l_enotez_hyperfootnotes_bool
+        \fi
+      }
+      {
+        \bool_set_false:N \l_enotez_hyperref_bool
+        \bool_set_false:N \l_enotez_hyperfootnotes_bool
+      }
+  }
+
+\tex_endinput:D
+% HISTORY:
+2012/07/03 v0.1 - first public version on bitbucket
+
+% TODO:
+- add option `list-style' to choose the default style
