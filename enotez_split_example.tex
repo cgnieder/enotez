@@ -1,0 +1,40 @@
+\documentclass{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{libertine}
+
+\usepackage{enotez}
+\usepackage{kantlipsum}
+
+\DeclareInstance{enotez-list}{section}{paragraph}{heading=\section{#1}}
+\setenotez{split=section,list-style=section,reset}
+
+\usepackage{fnpct}
+\AdaptNote\endnote\multendnote
+
+\usepackage{mwe}
+\usepackage[colorlinks]{hyperref}
+
+\begin{document}
+
+\tableofcontents
+
+\section{Test}
+Text\endnote{\kant[1]}. Text\endnote{\kant[2]}. Text\endnote{This time
+with a \textbf{nested}\multendnote{\kant[3];\kant[4]} endnote.}.
+Text\multendnote{\kant[5];\kant[6]}.
+\begin{figure}[htp]
+ \centering
+ \includegraphics[width=.4\linewidth]{example-image-a}
+ \caption[caption]{Some text\endnote{An endnote with a nested endnote\endnote{\kant[7]}
+ inside a figure caption.}.}
+\end{figure}
+
+\section{Test}
+Text\endnote{\kant[8]}. Text\endnote{\kant[9]}. Text\endnote{This time
+with a \textbf{nested}\endnote{\kant[10]} endnote.}. Text\endnote{\kant[11]}.
+
+\appendix
+\printendnotes
+
+
+\end{document}

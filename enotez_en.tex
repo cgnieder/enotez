@@ -1,4 +1,5 @@
 % arara: pdflatex
+% arara: makeindex: { sort: true, style: enotez_en.ist }
 % arara: biber
 % arara: pdflatex
 % arara: pdflatex
@@ -32,7 +33,7 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
-\documentclass[toc=bib]{cnpkgdoc}
+\documentclass[toc=bib,toc=index]{cnpkgdoc}
 \docsetup{
   pkg      = enotez ,
   code-box = {
@@ -46,6 +47,7 @@
 }
 
 \addcmds{
+  appendix,
   chapter,
   cmd,
   DeclareInstance,
@@ -56,6 +58,8 @@
   enmark,
   phantomsection,
   printendnotes,
+  setenotez,
+  splitendnotes,
   textsuperscript
 }
 
@@ -97,6 +101,8 @@
 
 % rudimentary solution for a `maintainer' field:
 \DeclareFieldFormat{authortype}{\mkbibparens{#1}}
+% \DeclareFieldAlias{maintainer}{author}
+\DeclareBibliographyAlias{package}{misc}
 \renewbibmacro*{author}{%
   \ifboolexpr{
     test \ifuseauthor
@@ -112,7 +118,7 @@
 
 \usepackage{filecontents}
 \begin{filecontents*}{\jobname.bib}
-@software{endnotes,
+@package{endnotes,
   title      = {endnotes},
   author     = {Robin Fairbairns},
   authortype = {current maintainer},
@@ -121,27 +127,62 @@
   url        = {http://www.ctan.org/pkg/endnotes},
   urldate    = {2012-07-03}
 }
+@package{sepfootnotes,
+  title   = {sepfootnotes},
+  author  = {Eduardo C. Louren\c{c}o de Lima},
+  date    = {2012-03-06},
+  version = {0.1},
+  url     = {http://www.ctan.org/pkg/sepfootnotes},
+  urldate = {2012-07-03}
+}
 \end{filecontents*}
 
+\usepackage{makeidx}
+\begin{filecontents*}{\jobname.ist}
+ heading_prefix "{\\bfseries "
+ heading_suffix "\\hfil}\\nopagebreak\n"
+ headings_flag  1
+ delim_0 "\\dotfill "
+ delim_1 "\\dotfill "
+ delim_2 "\\dotfill "
+ delim_r "\\textendash"
+ suffix_2p "\\nohyperpage{\\,f.}"
+ suffix_3p "\\nohyperpage{\\,ff.}"
+\end{filecontents*}
+\makeindex
 
+\usepackage{kantlipsum}
+\usepackage{etoolbox}
+\AtBeginEnvironment{beispiel}{\setfnpct{dont-mess-around}}
+\usepackage{enumitem}
 \begin{document}
 
 \section{Licence and Requirements}
 Permission is granted to copy, distribute and/or modify this software under the
-terms of the LaTeX Project Public License, version 1.3 or later
+terms of the \LaTeX\ Project Public License, version 1.3 or later
 (\url{http://www.latex-project.org/lppl.txt}). The package has the status
 ``maintained.''
 
-\enotez loads and needs the following packages: \paket{expl3},
-\paket{xparse}, \paket{xtemplate} and \paket{l3keys2e}.
+\enotez needs and loads the following packages: \paket{expl3},
+\paket{xparse}, \paket{xtemplate} and \paket{l3keys2e}. If you're using
+\paket{memoir}, a \paket[http://www.ctan.org/pkg/koma-script]{KOMA-Script}
+class or the package \paket{caption} \enotez also needs and loads \paket{etoolbox}.
 
 \section{Motivation}
 \enotez is a new implementation of endnotes for \LaTeXe\ since the \paket{endnotes}
 package~\cite{endnotes} has some deficiencies. Nested endnotes, for example, are
-not supported, neither is \paket{hyperref}.
+not supported, neither is \paket{hyperref}. The \paket{sepfootnotes} package~\cite{sepfootnotes}
+also provides means for endnotes but actually has a different purpose: to
+separate input and usage both of footnotes and endnotes. So it might not be the
+best solution in every case\footnote{You have to write the actual notes in the
+preamble or a separate file and reference them in the text.}. It also does not
+allow nested endnotes.
 
 \enotez enables nested endnotes properly and has another mechanism of customizing
 the list of endnotes which is easily extendable.
+
+As an aside: \enotez is nicely compatible with the \paket{fnpct} package%
+\footnote{You'll have to use \cmd*{AdaptNote} for the time being, though.}.
 
 \section{Usage}
 \subsection{Placing the Notes}
@@ -151,14 +192,21 @@ note mark.
  \befehl{endnote}[<mark>]{<text>} Add an endnote in the text.
 \end{beschreibung}
 \begin{beispiel}
- This is some text\endnote{With an endnote.}.
+ This is some text.\endnote{With an endnote.}
 \end{beispiel}
 There's not really much more to it. It is possible to add a custom mark by
 using the optional argument but that should be needed too often. \cmd{endnote}
-works fine inside tables, minipages, floats\ldots. Endnotes can also be nested.
+works fine inside tables, minipages, floats and captions\footnote{This has been
+tested with the standard classes, \paket*{memoir}, and the \paket*{KOMA-Script}
+classes, with and without the \paket*{caption} package. If you're using another
+package that redefines \cmd*{caption} it might not work.}. Endnotes can also be
+nested. Since that seemed making a pair \cmd{endnotemark}/\cmd{endnotetext}
+superfluous they are \emph{not} defined by \enotez.
 \begin{beispiel}
- This is some text\endnote{With another endnote\endnote{This is a
- nested endnote!}.}.
+ This is some text.\endnote{With another endnote.\endnote{This is a
+ nested\endnote{And another level deeper\ldots} endnote!}}
+ % uses package `kantlipsum':
+ Of course you can have several paragraphs\endnote{\kant[1-3]} in an endnote.
 \end{beispiel}
 
 \subsection{Printing the Notes}
@@ -180,15 +228,16 @@ to the \code{aux} file the first time they're printed with \cmd{printendnotes}
 which means you might have to compile your file once more. If you change any of
 the endnotes or add another one you again will need at least two runs. \enotez
 tries to warn you in these cases by invoking \LaTeX's warning
-
-\code{Label(s) may have changed. Rerun to get cross-references right.}
-
-\noindent but may not catch all cases.
+\achtung{\code{Label(s) may have changed. Rerun to get cross-references right.}}
+but may not catch all cases.
 
 \section{Options}
 \subsection{Package Options}
-\enotez has a few package options. They should be pretty self-explanatory.
+\enotez has a few package options which should be pretty self-explanatory. They
+can be set either as package options with \verb=\usepackage[<options>]{enotez}=
+or with the setup command.
 \begin{beschreibung}
+ \befehl{setenotez}{<options>} Setup command for setting \enotez' options.
  \Option{list-name}{<list name>}\Default{Notes}
    The name of the notes list. This name is used for the heading of the list.
  \Option{reset}{\default{true}|false}\Default{false}
@@ -204,7 +253,7 @@ tries to warn you in these cases by invoking \LaTeX's warning
 \end{beschreibung}
 
 \subsection{Customizing the List}\label{ssec:customizing_the_list}
-The list is typeset with \paket{xtemplate}'s template mechanism. \enotez declares
+The list is typeset with \paket{xtemplate}'s possibilities. \enotez declares
 the object \code{enotez-list} and two templates for it, the template \code{paragraph}
 and the template \code{list}.
 
@@ -221,7 +270,7 @@ The \code{paragraph} template's interface is defined as follows:
    }
 \end{beispiel}
 The parameters functions are these:
-\begin{description}
+\begin{description}[style=nextline]
  \item[\code{heading}] The command with which the heading is typeset.
  \item[\code{format}] The format of the whole list.
  \item[\code{number}] The command that is used to typeset the numbers of the
@@ -276,7 +325,7 @@ is a \code{description} list.
 \enotez defines two instances of this template:
 \begin{beispiel}[code only]
  \DeclareInstance{enotez-list}{description}{list}{}
- \DeclareInstance{enotez-list}{itemize}{list}{list-type = itemize }
+ \DeclareInstance{enotez-list}{itemize}{list}{ list-type = itemize }
 \end{beispiel}
 They're available through \cmd{printendnotes}[description] and
 \cmd{printendnotes}[itemize], respectively.
@@ -284,15 +333,61 @@ They're available through \cmd{printendnotes}[description] and
 Again you can define your own instances using whatever list you want, possibly
 one defined with the power \paket{enumitem}.
 
+\section{Collect Notes Section-wise and Print List Stepwise}
+\emph{This feature is experimental and has some limitations}.
+
+Not to be misunderstood: you can use \cmd{printendnotes} as often as you like,
+possibly after each section. That is \emph{not} what is meant here. Let's
+suppose you are writing a book and have many endnotes in many chapters. It
+would be nice if the list of endnotes at the end of the book could be splitted
+into parts for each chapter. This section describes how you can achieve that with
+\enotez.
+
+First of all \enotez will rely on the fact that you use \cmd{printendnotes}
+only \emph{once}! If you call it more times nobody knows what will happen\ldots
+
+You'll need to tell \enotez that you want to split the notes into groups.
+\begin{beschreibung}
+ \Option{split}{section|chapter|false}\Default{false}
+   Enable the automatic splitting.
+\end{beschreibung}
+Well -- that's it, basically. You'll have to be careful, though:
+If you're having nested endnotes the nested ones appear first in the ``Notes''
+section (or chapter, respectively). In this case you should have a numbered
+section title for the notes, presumably in the appendix. You'll need to create
+a new list style:
+\begin{beispiel}[code only]
+ % preamble:
+ \usepackage{enotez}
+ \DeclareInstance{enotez-list}{section}{paragraph}{heading=\section{#1}}
+ \setenotez{list-style=section,split=section}
+ % document:
+ \appendix
+ \printendnotes
+\end{beispiel}
+
+Please beware that the option \key{reset} also impacts here: the numbing will
+be reset for each section or chapter, depending on the choice you made for
+\key{split}.
+
+\enotez comes with an example document for a splitted list which you should
+find in the same folder as this documentation.
+
 \section{hyperref Support}
 If \paket{hyperref} is loaded and you are using the option \key{totoc} (see
-p~\ref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
+p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
 
 If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the list.
 
+\clearpage
 \printendnotes[addsec]
 
 {\EmbracOff\printbibliography}
 
+\setindexpreamble{Section titles are indicated \textbf{bold}, packages
+\textsf{sans serif}, commands \code{\textbackslash\textcolor{code}{brown}}
+ and options \textcolor{key}{\code{yellow}}.\par\bigskip}
+
+\printindex
 \end{document}

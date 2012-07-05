@@ -31,16 +31,21 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate }
 \ProvidesExplPackage
   {enotez}
-  {2012/07/03}
-  {0.1}
+  {2012/07/05}
+  {0.2}
   {Endnotes for LaTeX2e}
 
+% --------------------------------------------------------------------------
 % variables:
 \bool_new:N \l_enotez_print_note_bool
 \bool_new:N \l_enotez_reset_bool
 \bool_new:N \l_enotez_totoc_bool
 \bool_new:N \l_enotez_hyperref_bool
 \bool_new:N \l_enotez_hyperfootnotes_bool
+\bool_new:N \l_enotez_split_bool
+
+\tl_new:N   \l_enotez_tmpa_tl
+\tl_new:N   \l_enotez_tmpb_tl
 \tl_new:N   \l_enotez_totoc_tl
 \tl_new:N   \l_enotez_list_name_tl
 \tl_set:Nn  \l_enotez_list_name_tl { Notes }
@@ -48,40 +53,58 @@
 \tl_new:N   \l_enotez_endnote_mark_tl
 \tl_new:N   \l_enotez_list_instance_tl
 \tl_set:Nn  \l_enotez_list_instance_tl { plain }
+\tl_new:N   \l_enotez_split_tl
+
 \int_new:N  \g_enotez_endnote_id_int
 \int_zero:N \g_enotez_endnote_id_int
 \int_new:N  \g_enotez_endnote_mark_int
 \int_zero:N \g_enotez_endnote_mark_int
 \int_new:N  \g_enotez_list_printed_int
 \int_zero:N \g_enotez_list_printed_int
+
 \prop_new:N \g_enotez_endnote_text_prop
 \prop_new:N \g_enotez_endnote_mark_prop
+\prop_new:N \g_enotez_endnote_split_prop
 \prop_new:N \g_enotez_endnote_sect_prop
+\prop_new:N \g_enotez_endnote_man_prop
 
+% --------------------------------------------------------------------------
+% options:
 \cs_new_eq:NN \enotez_counter_format:n \int_to_arabic:n
 \cs_generate_variant:Nn \enotez_counter_format:n { V }
 
 \keys_define:nn { enotez }
   {
-    list-name      .tl_set:N           = \l_enotez_list_name_tl    ,
-    reset          .bool_set:N         = \l_enotez_reset_bool      ,
-    counter-format .choice_code:n      =
+    list-name       .tl_set:N           = \l_enotez_list_name_tl     ,
+    reset           .bool_set:N         = \l_enotez_reset_bool       ,
+    counter-format  .choice_code:n      =
       \cs_set_eq:Nc \enotez_counter_format:n { int_to_ \l_keys_choice_tl :n } ,
-    counter-format .generate_choices:n =
-      { arabic , alph , Alph , roman , Roman }                      ,
-    totoc          .choice_code:n      =
+    counter-format  .generate_choices:n =
+      { arabic , alph , Alph , roman , Roman }                       ,
+    totoc           .choice_code:n      =
       \tl_if_eq:VnTF \l_keys_choice_tl { false }
         { \bool_set_false:N \l_enotez_totoc_bool }
         {
           \bool_set_true:N \l_enotez_totoc_bool
           \tl_set_eq:NN \l_enotez_totoc_tl \l_keys_choice_tl
-        }                                                           ,
-    totoc          .generate_choices:n =
-      { section , chapter , false }                                 ,
-    list-style     .tl_set:N           = \l_enotez_list_instance_tl ,
+        }                                                            ,
+    totoc           .generate_choices:n =
+      { section , chapter , false }                                  ,
+    split           .choice_code:n      =
+      \tl_if_eq:VnTF \l_keys_choice_tl { false }
+        { \bool_set_false:N \l_enotez_split_bool }
+        { \bool_set_true:N \l_enotez_split_bool }
+      \tl_set_eq:NN \l_enotez_split_tl \l_keys_choice_tl             ,
+    split           .generate_choices:n =
+      { section , chapter , false }                                  ,
+    list-style      .tl_set:N           = \l_enotez_list_instance_tl ,
   }
-\cs_generate_variant:Nn \tl_if_eq:nnTF { V }
+\cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
 
+% --------------------------------------------------------------------------
+% typeset the actual mark:
+% #1: id
+% #2: mark
 \cs_new:Npn \enotez_write_mark:nn #1#2
   {
     \bool_if:NTF \l_enotez_hyperfootnotes_bool
@@ -89,6 +112,7 @@
       { \textsuperscript { #2 } }
   }
 
+% the internal endnote:
 \cs_new:Npn \enotez_endnote:nn #1#2
   {
     \int_gincr:N \g_enotez_endnote_id_int
@@ -98,91 +122,147 @@
         \enotez_write_mark:nn
           { \int_use:N \g_enotez_endnote_id_int }
           { \enotez_counter_format:V \g_enotez_endnote_mark_int }
-        \enotez_save_note:xxxn
-          { \int_use:N \g_enotez_endnote_id_int }
-          { \int_use:N \g_enotez_endnote_mark_int }
-          { \int_use:N \g_enotez_list_printed_int }
-          { #2 }
+        \tl_set:Nn \l_tmpa_tl { chapter }
+        \bool_if:nTF { \l_enotez_split_bool && \tl_if_eq_p:NN \l_enotez_split_tl \l_tmpa_tl }
+          {
+            \enotez_save_note:xxxxnn
+              { \int_use:N \g_enotez_endnote_id_int }
+              { \int_use:N \g_enotez_endnote_mark_int }
+              { \int_use:N \g_enotez_list_printed_int }
+              { \thechapter }
+              { a }
+              { #2 }
+          }
+          {
+            \enotez_save_note:xxxxnn
+              { \int_use:N \g_enotez_endnote_id_int }
+              { \int_use:N \g_enotez_endnote_mark_int }
+              { \int_use:N \g_enotez_list_printed_int }
+              { \thesection }
+              { a }
+              { #2 }
+          }
       }
       {
         \enotez_write_mark:nn { \int_use:N \g_enotez_endnote_id_int } { #1 }
-        \enotez_save_note:xnxn
-          { \int_use:N \g_enotez_endnote_id_int }
-          { #1 }
-          { \int_use:N \g_enotez_list_printed_int }
-          { #2 }
+        \tl_set:Nn \l_tmpa_tl { chapter }
+        \bool_if:nTF { \l_enotez_split_bool && \tl_if_eq_p:NN \l_enotez_split_tl \l_tmpa_tl }
+          {
+            \enotez_save_note:xnxxnn
+              { \int_use:N \g_enotez_endnote_id_int }
+              { #1 }
+              { \int_use:N \g_enotez_list_printed_int }
+              { \thechapter }
+              { m }
+              { #2 }
+          }
+          {
+            \enotez_save_note:xnxxnn
+              { \int_use:N \g_enotez_endnote_id_int }
+              { #1 }
+              { \int_use:N \g_enotez_list_printed_int }
+              { \thesection }
+              { m }
+              { #2 }
+          }
       }
   }
 
-% \cs_new:Npn \enotez_endnote_mark:n #1
-%   {
-%     \IfNoValueTF { #1 }
-%       {
-%         \int_gincr:N \g_enotez_endnote_mark_int
-%         \textsuperscript { \enotez_counter_format:V \g_enotez_endnote_mark_int }
-%       }
-%       { \textsuperscript { #1 } }
-%     \int_gincr:N \g_enotez_endnote_id_int
-%   }
-% 
-% \cs_new:Npn \enotez_endnote_mark_aux:w [#1]
-%   { \enotez_endnote_mark:n { #1 } }
-% 
-% \cs_new:Npn \endnotemark
-%  {
-%    \peek_meaning_ignore_spaces:NTF [
-%      { \enotez_endnote_mark_aux:w }
-%      { \enotez_endnote_mark:n { \NoValue } }
-%  }
-% 
-% \cs_new:Npn \enotez_endnote_text:nn #1#2
-%   {
-%     \IfNoValueTF { #1 }
-%       {
-%         \enotez_save_note:xxxn
-%           { \int_use:N \g_enotez_endnote_id_int }
-%           { \int_use:N \g_enotez_endnote_mark_int }
-%           { \int_use:N \g_enotez_list_printed_int }
-%           { #2 }
-%       }
-%       {
-%         \enotez_save_note:xnxn
-%           { \int_use:N \g_enotez_endnote_id_int }
-%           { #1 }
-%           { \int_use:N \g_enotez_list_printed_int }
-%           { #2 }
-%       }
-%   }
-% 
-% \cs_new:Npn \enotez_endnote_text_aux:w [#1]
-%   { \enotez_endnote_text:nn { #1 } }
-% 
-% \cs_new:Npn \endnotetext
-%   {
-%     \peek_meaning_ignore_spaces:NTF [
-%       { \enotez_endnote_text_aux:w }
-%       { \enotez_endnote_text:nn { \NoValue } }
-%   }
+% --------------------------------------------------------------------------
+% in some cases caption making commands need to be patched. preparations:
+\cs_new:Npn \enotez_tmp_endnote:nn {}
 
-% #1 global id
-% #2 mark
-% #3 section
-% #4 text
-\cs_new:Npn \enotez_save_note:nnnn #1#2#3#4
-  { \iow_now:Nn \@auxout { \enotez@note { #1 } { #2 } { #3 } { #4 } } }
-\cs_generate_variant:Nn \enotez_save_note:nnnn { xxxn , xnxn }
-
-\cs_new:Npn \enotez@note #1#2#3#4
+\cs_new:Npn \enotez_caption_endnote:nn #1#2
   {
-    \expandafter \xdef \csname enotez@#1@note \endcsname { #2 }
-    \prop_gput:Nnn \g_enotez_endnote_mark_prop { #1 } { #2 }
-    \prop_gput:Nnn \g_enotez_endnote_sect_prop { #1 } { #3 }
-    \prop_gput:Nnn \g_enotez_endnote_text_prop { #1 } { #4 }
+    \IfNoValueTF { #1 }
+      {
+        \enotez_write_mark:nn
+          { \int_use:N \g_enotez_endnote_id_int }
+          { \enotez_counter_format:V \g_enotez_endnote_mark_int }
+      }
+      { \enotez_write_mark:nn { \int_use:N \g_enotez_endnote_id_int } { #1 } }
   }
 
+\cs_new:Npn \enotez@koma@disable
+  { \cs_set_eq:NN \enotez_endnote:nn \enotez_caption_endnote:nn }
+
+\cs_new:Npn \enotez@memoir@disable
+  {
+    \cs_set_eq:NN \enotez_tmp_endnote:nn \enotez_endnote:nn
+    \cs_set_eq:NN \enotez_endnote:nn \enotez_caption_endnote:nn
+  }
+
+\cs_new:Npn \enotez@memoir@enable
+  { \cs_set_eq:NN \enotez_endnote:nn \enotez_tmp_endnote:nn }
+
+\cs_new:Npn \enotez@caption@disable
+  {
+    \patchcmd \caption@@make
+      { \caption@@@make }
+      { \enotez@koma@disable\caption@@@make }
+      {}{}
+  }
+
+% if we're in a KOMA class, \@@makecaption needs to be patched:
+\AtBeginDocument
+  {
+    \@ifpackageloaded { caption }
+      { \RequirePackage { etoolbox } \enotez@caption@disable }
+      {
+        \cs_if_free:NF \KOMAClassName
+          {
+            \RequirePackage { etoolbox }
+            \patchcmd \@@makecaption
+              { \setlength{\@tempdima}{\cap@width} }
+              { \enotez@koma@disable\setlength{\@tempdima}{\cap@width} }{}{}
+          }
+      }
+  }
+
+% if we're in memoir, \@makecaption needs to be patched:
+\@ifclassloaded { memoir }
+  {
+    \AtBeginDocument
+      {
+        \@ifpackageloaded { caption } { }
+          {
+            \RequirePackage { etoolbox }
+            \patchcmd \@makecaption
+              { \let\@contfnote\footnote }
+              { \enotez@memoir@disable\let\@contfnote\footnote }{}{}
+            \patchcmd \@makecaption
+              { \let\footnote\@contfnote }
+              { \enotez@memoir@enable\let\footnote\@contfnote }{}{}
+          }
+      }
+  }{}
+
+% --------------------------------------------------------------------------
+% save the notes to the aux file:
+% #1 global id
+% #2 mark
+% #3 split id
+% #4 section/chapter
+% #5 a/m (automatic/manually)
+% #6 text
+\cs_new:Npn \enotez_save_note:nnnnnn #1#2#3#4#5#6
+  { \iow_now:Nn \@auxout { \enotez@note { #1 } { #2 } { #3 } { #4 } { #5 } { #6 } } }
+\cs_generate_variant:Nn \enotez_save_note:nnnnnn { xxxxnn , xnxxnn }
+
+\cs_new:Npn \enotez@note #1#2#3#4#5#6
+  {
+    \expandafter \xdef \csname enotez@#1@note \endcsname { #2 }
+    \prop_gput:Nnn \g_enotez_endnote_mark_prop  { #1 } { #2 }
+    \prop_gput:Nnn \g_enotez_endnote_split_prop { #1 } { #3 }
+    \prop_gput:Nnn \g_enotez_endnote_sect_prop  { #1 } { #4 }
+    \prop_gput:Nnn \g_enotez_endnote_man_prop   { #1 } { #5 }
+    \prop_gput:Nnn \g_enotez_endnote_text_prop  { #1 } { #6 }
+  }
+
+% a try to check if a rerun is necessary:
 \AtEndDocument
   {
-    \cs_set:Npn \enotez@note #1#2#3#4
+    \cs_set:Npn \enotez@note #1#2#3#4#5#6
       {
         \def\reserved@a{#2}
         \expandafter\ifx\csname enotez@#1@note \endcsname\reserved@a\else
@@ -190,7 +270,9 @@
       }
   }
 
-
+% --------------------------------------------------------------------------
+% the actual user command; I would use \NewDocumentCommand but that would
+% disable compatibility with `fnpct'
 \cs_new:Npn \endnote
   {
     \peek_meaning_ignore_spaces:NTF [
@@ -201,6 +283,8 @@
 \cs_new:Npn \enotez_endnote_aux:w [#1]#2
   { \enotez_endnote:nn { #1 } { #2 } }
 
+% --------------------------------------------------------------------------
+% the list of notes
 \DeclareObjectType { enotez-list } { 1 }
 
 \DeclareTemplateInterface { enotez-list } { paragraph } { 1 }
@@ -246,7 +330,7 @@
                             { \hbox:n { \hypertarget { enz.##1 } { } } }
                         }
                       \tl_use:N \l_enotez_list_number_format_tl
-                      \token_if_eq_catcode:VNTF \l_enotez_endnote_mark_tl 1
+                      \tl_if_eq:nxTF { a } { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
                         { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
                         { \tl_use:N \l_enotez_endnote_mark_tl }
                     }
@@ -304,7 +388,7 @@
                             { \hbox:n { \hypertarget { enz.##1 } { } } }
                         }
                       \tl_use:N \l_enotez_list_number_format_tl
-                      \token_if_eq_catcode:VNTF \l_enotez_endnote_mark_tl 1
+                      \tl_if_eq:nxTF { a } { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
                         { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
                         { \tl_use:N \l_enotez_endnote_mark_tl }
                     }
@@ -316,12 +400,12 @@
     \group_end:
   }
 
+% some default styles:
 \DeclareInstance { enotez-list } { plain } { paragraph } {  }
 \DeclareInstance { enotez-list } { description } { list } {  }
 \DeclareInstance { enotez-list } { itemize } { list } { list-type = itemize }
 
-\cs_generate_variant:Nn \token_if_eq_catcode:NNTF { V }
-
+% determine which note's next:
 \cs_new:Npn \enotez_get_note:nn #1#2
   {
     \IfBooleanTF { #1 }
@@ -331,35 +415,90 @@
         \bool_set_true:N \l_enotez_print_note_bool
       }
       {
-        \prop_get:NnN \g_enotez_endnote_sect_prop { #2 } \l_tmpa_tl
-        \int_compare:nTF { \l_tmpa_tl = \g_enotez_list_printed_int }
+        \prop_get:NnN \g_enotez_endnote_split_prop { #2 } \l_enotez_tmpa_tl
+        \bool_if:NTF \l_enotez_split_bool
           {
+            % TODO: customizable title / totoc
+            \tl_if_eq:NNF \l_enotez_tmpa_tl \l_enotez_tmpb_tl
+              {
+                \tl_if_eq:VnTF \l_enotez_split_tl { section }
+                  { \subsection* }
+                  { \section* }
+                {
+                  Notes~from~\l_enotez_split_tl \c_space_tl
+                  \prop_get:Nn \g_enotez_endnote_sect_prop { #2 }
+                }
+              }
             \bool_set_true:N \l_enotez_print_note_bool
             \prop_gpop:NnN \g_enotez_endnote_mark_prop { #2 } \l_enotez_endnote_mark_tl
             \prop_gpop:NnN \g_enotez_endnote_text_prop { #2 } \l_enotez_endnote_text_tl
-            \prop_gdel:Nn  \g_enotez_endnote_sect_prop { #2 }
           }
-          { \bool_set_false:N \l_enotez_print_note_bool }
+          {
+            \int_compare:nTF { \l_enotez_tmpa_tl = \g_enotez_list_printed_int }
+              {
+                \bool_set_true:N \l_enotez_print_note_bool
+                \prop_gpop:NnN \g_enotez_endnote_mark_prop { #2 } \l_enotez_endnote_mark_tl
+                \prop_gpop:NnN \g_enotez_endnote_text_prop { #2 } \l_enotez_endnote_text_tl
+                \prop_gdel:Nn  \g_enotez_endnote_split_prop { #2 }
+              }
+              { \bool_set_false:N \l_enotez_print_note_bool }
+          }
+        \prop_get:NnN \g_enotez_endnote_split_prop { #2 } \l_enotez_tmpb_tl
       }
   }
 
+% the mark in the list:
 \cs_new:Npn \enmark #1 { #1 . }
 
-\NewDocumentCommand \printendnotes { so }
+% internal printendnotes:
+\cs_new:Npn \enotez_print_endnotes:nn #1#2
   {
     \IfNoValueTF { #2 }
       { \UseInstance { enotez-list } { \l_enotez_list_instance_tl } }
       { \UseInstance { enotez-list } { #2 } }
     { #1 }
-    \bool_if:NT \l_enotez_reset_bool
-      { \int_gzero:N \g_enotez_endnote_mark_int }
-    \int_gincr:N \g_enotez_list_printed_int
+    \bool_if:NF \l_enotez_split_bool
+      {
+        \bool_if:NTF \l_enotez_reset_bool
+          { \int_gzero:N \g_enotez_endnote_mark_int }
+        \int_gincr:N \g_enotez_list_printed_int
+      }
   }
 
+% the user command:
+\NewDocumentCommand \printendnotes { so }
+  {
+    \bool_if:NTF \l_enotez_split_bool
+      { \enotez_print_endnotes:nn { \BooleanFalse } { #2 } }
+      { \enotez_print_endnotes:nn { #1 } { #2 } }
+  }
+
+% --------------------------------------------------------------------------
+% process the options:
 \ProcessKeysOptions { enotez }
 
 \AtBeginDocument
   {
+    \bool_if:NT \l_enotez_split_bool
+      {
+        \tl_if_eq:VnTF \l_enotez_split_tl { section }
+          {
+            \tl_put_left:Nn \section
+              {
+                \int_gincr:N \g_enotez_list_printed_int
+                \bool_if:NT \l_enotez_reset_bool
+                  { \int_gzero:N \g_enotez_endnote_mark_int }
+              }
+          }
+          {
+            \tl_put_left:Nn \chapter
+              {
+                \int_gincr:N \g_enotez_list_printed_int
+                \bool_if:NT \l_enotez_reset_bool
+                  { \int_gzero:N \g_enotez_endnote_mark_int }
+              }
+          }
+      }
     \@ifpackageloaded { hyperref }
       {
         \bool_set_true:N \l_enotez_hyperref_bool
@@ -375,9 +514,20 @@
       }
   }
 
+% --------------------------------------------------------------------------
+% the setup command:
+\NewDocumentCommand \setenotez { m }
+  { \keys_set:nn { enotez } { #1 } \ignorespaces }
+
 \tex_endinput:D
+% --------------------------------------------------------------------------
 % HISTORY:
 2012/07/03 v0.1 - first public version on bitbucket
+2012/07/05 v0.2 - added preliminary `split' option
+                - enable endnotes in captions with KOMA classes, `memoir' and
+                  the `caption' package
 
+% --------------------------------------------------------------------------
 % TODO:
-- add option `list-style' to choose the default style
+- make the headings in the splitted list customizable and obey the `totoc'
+  option
