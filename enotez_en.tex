@@ -56,6 +56,7 @@
   endnotemark,
   endnotetext,
   enmark,
+  kant,
   phantomsection,
   printendnotes,
   setenotez,
@@ -179,7 +180,10 @@ preamble or a separate file and reference them in the text.}. It also does not
 allow nested endnotes.
 
 \enotez enables nested endnotes properly and has another mechanism of customizing
-the list of endnotes which is easily extendable.
+the list of endnotes which is easily extendable. One of the main features  of
+\enotez is a splitted list of endnotes in which the notes are automatically
+separated by the sections or chapters they were set in, see section~\ref{sec:split}
+for more information.
 
 As an aside: \enotez is nicely compatible with the \paket{fnpct} package%
 \footnote{You'll have to use \cmd*{AdaptNote} for the time being, though.}.
@@ -262,6 +266,7 @@ The \code{paragraph} template's interface is defined as follows:
 \begin{beispiel}[code only]
  \DeclareTemplateInterface{enotez-list}{paragraph}{1}
    {
+     % parameter   : type       = default
      heading       : function 1 = \section*{#1}   ,
      format        : tokenlist  = \footnotesize   ,
      number        : function 1 = \enmark{#1}     ,
@@ -312,6 +317,7 @@ The \code{paragraph} template's interface is defined as follows:
 \begin{beispiel}[code only]
  \DeclareTemplateInterface{enotez-list}{list}{1}
    {
+     % parameter   : type       = default
      heading       : function 1 = \section*{#1} ,
      format        : tokenlist  = \footnotesize ,
      number        : function 1 = \enmark{#1}   ,
@@ -325,15 +331,15 @@ is a \code{description} list.
 \enotez defines two instances of this template:
 \begin{beispiel}[code only]
  \DeclareInstance{enotez-list}{description}{list}{}
- \DeclareInstance{enotez-list}{itemize}{list}{ list-type = itemize }
+ \DeclareInstance{enotez-list}{itemize}{list}{list-type = itemize}
 \end{beispiel}
 They're available through \cmd{printendnotes}[description] and
 \cmd{printendnotes}[itemize], respectively.
 
 Again you can define your own instances using whatever list you want, possibly
-one defined with the power \paket{enumitem}.
+one defined with the power of \paket{enumitem}.
 
-\section{Collect Notes Section-wise and Print List Stepwise}
+\section{Collect Notes Section-wise and Print List Stepwise}\label{sec:split}
 \emph{This feature is experimental and has some limitations}.
 
 Not to be misunderstood: you can use \cmd{printendnotes} as often as you like,
@@ -350,7 +356,22 @@ You'll need to tell \enotez that you want to split the notes into groups.
 \begin{beschreibung}
  \Option{split}{section|chapter|false}\Default{false}
    Enable the automatic splitting.
+ \Option{split-sectioning}{<csname>}\Default
+   The command that is used to display the titles between the splits. It needs
+   to be a command that takes one argument and should be entered without the
+   leading backslash. If the option is not used \enotez will choose
+   \code{subsection*} for \key*{split}{section} and \code{section*} for
+   \key*{split}{chapter}.
+ \Option{split-title}{<tokenlist>}\Default{Notes from <name> <ref>}
+   The title that will be inserted between the splits. \code{<name>} is replaced
+   by \code{Section} for \key*{split}{section} and \code{Chapter} for
+   \key*{split}{section}. \code{<ref>} is replaced by the corresponding
+   \cmd*{thesection} or \cmd*{thechapter}.
 \end{beschreibung}
+Set the \key{split} option:
+\begin{beispiel}[code only]
+ \setenotez{split=section}
+\end{beispiel}
 Well -- that's it, basically. You'll have to be careful, though:
 If you're having nested endnotes the nested ones appear first in the ``Notes''
 section (or chapter, respectively). In this case you should have a numbered
@@ -380,7 +401,6 @@ p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
 If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the list.
 
-\clearpage
 \printendnotes[addsec]
 
 {\EmbracOff\printbibliography}

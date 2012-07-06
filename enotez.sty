@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate }
 \ProvidesExplPackage
   {enotez}
-  {2012/07/05}
-  {0.2}
+  {2012/07/06}
+  {0.2a}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -54,6 +54,9 @@
 \tl_new:N   \l_enotez_list_instance_tl
 \tl_set:Nn  \l_enotez_list_instance_tl { plain }
 \tl_new:N   \l_enotez_split_tl
+\tl_new:N   \l_enotez_splitted_list_sectioning_tl
+\tl_new:N   \l_enotez_splitted_title_tl
+\tl_set:Nn  \l_enotez_splitted_title_tl { Notes~from~<name>~<ref> }
 
 \int_new:N  \g_enotez_endnote_id_int
 \int_zero:N \g_enotez_endnote_id_int
@@ -75,29 +78,31 @@
 
 \keys_define:nn { enotez }
   {
-    list-name       .tl_set:N           = \l_enotez_list_name_tl     ,
-    reset           .bool_set:N         = \l_enotez_reset_bool       ,
-    counter-format  .choice_code:n      =
-      \cs_set_eq:Nc \enotez_counter_format:n { int_to_ \l_keys_choice_tl :n } ,
-    counter-format  .generate_choices:n =
-      { arabic , alph , Alph , roman , Roman }                       ,
-    totoc           .choice_code:n      =
+    list-name        .tl_set:N           = \l_enotez_list_name_tl                ,
+    reset            .bool_set:N         = \l_enotez_reset_bool                  ,
+    counter-format   .choice_code:n      =
+      \cs_set_eq:Nc \enotez_counter_format:n { int_to_ \l_keys_choice_tl :n }    ,
+    counter-format   .generate_choices:n =
+      { arabic , alph , Alph , roman , Roman }                                   ,
+    totoc            .choice_code:n      =
       \tl_if_eq:VnTF \l_keys_choice_tl { false }
         { \bool_set_false:N \l_enotez_totoc_bool }
         {
           \bool_set_true:N \l_enotez_totoc_bool
           \tl_set_eq:NN \l_enotez_totoc_tl \l_keys_choice_tl
-        }                                                            ,
-    totoc           .generate_choices:n =
-      { section , chapter , false }                                  ,
-    split           .choice_code:n      =
+        }                                                                        ,
+    totoc            .generate_choices:n =
+      { section , chapter , false }                                              ,
+    split            .choice_code:n      =
       \tl_if_eq:VnTF \l_keys_choice_tl { false }
         { \bool_set_false:N \l_enotez_split_bool }
         { \bool_set_true:N \l_enotez_split_bool }
-      \tl_set_eq:NN \l_enotez_split_tl \l_keys_choice_tl             ,
-    split           .generate_choices:n =
-      { section , chapter , false }                                  ,
-    list-style      .tl_set:N           = \l_enotez_list_instance_tl ,
+      \tl_set_eq:NN \l_enotez_split_tl \l_keys_choice_tl                         ,
+    split            .generate_choices:n =
+      { section , chapter , false }                                              ,
+    split-sectioning .tl_set:N           = \l_enotez_splitted_list_sectioning_tl ,
+    split-title      .tl_set:N           = \l_enotez_splitted_title_tl           ,
+    list-style       .tl_set:N           = \l_enotez_list_instance_tl            ,
   }
 \cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
 
@@ -388,7 +393,8 @@
                             { \hbox:n { \hypertarget { enz.##1 } { } } }
                         }
                       \tl_use:N \l_enotez_list_number_format_tl
-                      \tl_if_eq:nxTF { a } { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
+                      \tl_if_eq:nxTF { a }
+                        { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
                         { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
                         { \tl_use:N \l_enotez_endnote_mark_tl }
                     }
@@ -405,6 +411,22 @@
 \DeclareInstance { enotez-list } { description } { list } {  }
 \DeclareInstance { enotez-list } { itemize } { list } { list-type = itemize }
 
+% the titles in between the splits:
+\cs_new:Npn \enotez_read_splitted_title:nn #1#2
+  {
+    \tl_set:Nn \l_tmpa_tl { #1 }
+    \tl_replace_all:Nnn \l_tmpa_tl { <name> }
+      { \enotez_first_upper:V \l_enotez_split_tl }
+    \tl_replace_all:Nnn \l_tmpa_tl { <ref> }
+      { \prop_get:Nn \g_enotez_endnote_sect_prop { #2 } }
+    \tl_use:N \l_tmpa_tl
+  }
+\cs_generate_variant:Nn \enotez_read_splitted_title:nn { V }
+
+\cs_new:Npn \enotez_first_upper:n #1
+  { \tl_to_uppercase:n { \tl_head:n { #1 } } \tl_tail:n { #1 } }
+\cs_generate_variant:Nn \enotez_first_upper:n { V }
+
 % determine which note's next:
 \cs_new:Npn \enotez_get_note:nn #1#2
   {
@@ -418,15 +440,18 @@
         \prop_get:NnN \g_enotez_endnote_split_prop { #2 } \l_enotez_tmpa_tl
         \bool_if:NTF \l_enotez_split_bool
           {
-            % TODO: customizable title / totoc
             \tl_if_eq:NNF \l_enotez_tmpa_tl \l_enotez_tmpb_tl
               {
-                \tl_if_eq:VnTF \l_enotez_split_tl { section }
-                  { \subsection* }
-                  { \section* }
+                \tl_if_blank:VTF \l_enotez_splitted_list_sectioning_tl
+                  {
+                    \tl_if_eq:VnTF \l_enotez_split_tl { section }
+                      { \subsection* }
+                      { \section* }
+                  }
+                  { \use:c { \l_enotez_splitted_list_sectioning_tl } }
                 {
-                  Notes~from~\l_enotez_split_tl \c_space_tl
-                  \prop_get:Nn \g_enotez_endnote_sect_prop { #2 }
+                  \enotez_read_splitted_title:Vn
+                    \l_enotez_splitted_title_tl { #2 }
                 }
               }
             \bool_set_true:N \l_enotez_print_note_bool
@@ -516,18 +541,18 @@
 
 % --------------------------------------------------------------------------
 % the setup command:
-\NewDocumentCommand \setenotez { m }
+\NewDocumentCommand \setenotez { +m }
   { \keys_set:nn { enotez } { #1 } \ignorespaces }
 
 \tex_endinput:D
 % --------------------------------------------------------------------------
 % HISTORY:
-2012/07/03 v0.1 - first public version on bitbucket
-2012/07/05 v0.2 - added preliminary `split' option
-                - enable endnotes in captions with KOMA classes, `memoir' and
-                  the `caption' package
+2012/07/03 v0.1  - first public version on bitbucket
+2012/07/05 v0.2  - added preliminary `split' option
+                 - enable endnotes in captions with KOMA classes, `memoir' and
+                   the `caption' package
+2012/07/06 v0.2a - made the splitted list titles customizable
 
 % --------------------------------------------------------------------------
 % TODO:
-- make the headings in the splitted list customizable and obey the `totoc'
-  option
+- make the headings obey the `totoc' option?
