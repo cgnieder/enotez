@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate }
 \ProvidesExplPackage
   {enotez}
-  {2012/07/06}
-  {0.2a}
+  {2012/07/07}
+  {0.3}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -46,6 +46,7 @@
 
 \tl_new:N   \l_enotez_tmpa_tl
 \tl_new:N   \l_enotez_tmpb_tl
+\tl_new:N   \l_enotez_tmpc_tl
 \tl_new:N   \l_enotez_totoc_tl
 \tl_new:N   \l_enotez_list_name_tl
 \tl_set:Nn  \l_enotez_list_name_tl { Notes }
@@ -57,6 +58,7 @@
 \tl_new:N   \l_enotez_splitted_list_sectioning_tl
 \tl_new:N   \l_enotez_splitted_title_tl
 \tl_set:Nn  \l_enotez_splitted_title_tl { Notes~from~<name>~<ref> }
+\tl_new:N   \l_enotez_list_splitted_title_tl
 
 \int_new:N  \g_enotez_endnote_id_int
 \int_zero:N \g_enotez_endnote_id_int
@@ -64,6 +66,7 @@
 \int_zero:N \g_enotez_endnote_mark_int
 \int_new:N  \g_enotez_list_printed_int
 \int_zero:N \g_enotez_list_printed_int
+\int_new:N  \l_enotez_tmpa_int
 
 \prop_new:N \g_enotez_endnote_text_prop
 \prop_new:N \g_enotez_endnote_mark_prop
@@ -105,6 +108,7 @@
     list-style       .tl_set:N           = \l_enotez_list_instance_tl            ,
   }
 \cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
+\cs_generate_variant:Nn \tl_if_eq:nnT  { xx }
 
 % --------------------------------------------------------------------------
 % typeset the actual mark:
@@ -317,35 +321,47 @@
         \addcontentsline { toc } { \l_enotez_totoc_tl } { \l_enotez_list_name_tl }
       }
     \enotez_list_heading:n { \l_enotez_list_name_tl }
-    \group_begin:
+        \group_begin:
       \tl_use:N \l_enotez_list_format_tl
-      \prop_map_inline:Nn \g_enotez_endnote_mark_prop
+      \int_zero:N \l_enotez_tmpa_int
+      \int_do_while:nn { \l_enotez_tmpa_int <= \g_enotez_list_printed_int }
         {
-          \enotez_get_note:nn { #1 } { ##1 }
-          \bool_if:NT \l_enotez_print_note_bool
+          \prop_map_inline:Nn \g_enotez_endnote_mark_prop
             {
-              \par\noindent
-              \llap
+              \tl_if_eq:xxT
+                { \int_use:N \l_enotez_tmpa_int }
+                { \prop_get:Nn \g_enotez_endnote_split_prop { ##1 } }
                 {
-                  \enotez_list_number:n
+                  \enotez_get_split_title:n { ##1 }
+                  \enotez_get_note:nn { #1 } { ##1 }
+                  \bool_if:NT \l_enotez_print_note_bool
                     {
-                      \bool_if:NT \l_enotez_hyperfootnotes_bool
+                      \par\noindent
+                      \llap
                         {
-                          \box_move_up:nn { 1em }
-                            { \hbox:n { \hypertarget { enz.##1 } { } } }
+                          \enotez_list_number:n
+                            {
+                              \bool_if:NT \l_enotez_hyperfootnotes_bool
+                                {
+                                  \box_move_up:nn { 1em }
+                                    { \hbox:n { \hypertarget { enz.##1 } { } } }
+                                }
+                              \tl_use:N \l_enotez_list_number_format_tl
+                              \tl_if_eq:nxTF { a }
+                                { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
+                                { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
+                                { \tl_use:N \l_enotez_endnote_mark_tl }
+                            }
+                          \tl_use:N \c_space_tl
                         }
-                      \tl_use:N \l_enotez_list_number_format_tl
-                      \tl_if_eq:nxTF { a } { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
-                        { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
-                        { \tl_use:N \l_enotez_endnote_mark_tl }
+                      \tl_use:N \l_enotez_endnote_text_tl
                     }
-                  \tl_use:N \c_space_tl
                 }
-              \tl_use:N \l_enotez_endnote_text_tl
               \par
               \dim_compare:nT { \l_enotez_list_notes_sep_dim != 0pt }
                 { \addvspace { \l_enotez_list_notes_sep_dim } }
             }
+          \int_incr:N \l_enotez_tmpa_int
         }
     \group_end:
   }
@@ -377,32 +393,51 @@
     \enotez_list_heading:n { \l_enotez_list_name_tl }
     \group_begin:
       \tl_use:N \l_enotez_list_format_tl
-      \begin{\l_enotez_list_type_tl}
-      \prop_map_inline:Nn \g_enotez_endnote_text_prop
+      \int_zero:N \l_enotez_tmpa_int
+      \int_do_while:nn { \l_enotez_tmpa_int <= \g_enotez_list_printed_int }
         {
-          \enotez_get_note:nn { #1 } { ##1 }
-          \bool_if:NT \l_enotez_print_note_bool
+          \prop_map_inline:Nn \g_enotez_endnote_mark_prop
             {
-              \item
-                [
-                  \enotez_list_number:n
+              \tl_clear:N \l_enotez_tmpc_tl
+              \tl_if_eq:xxT
+                { \int_use:N \l_enotez_tmpa_int }
+                { \prop_get:Nn \g_enotez_endnote_split_prop { ##1 } }
+                { \tl_put_right:Nn \l_enotez_tmpc_tl { ##1 } }
+              \tl_if_blank:VF \l_enotez_tmpc_tl
+                {
+                  \enotez_get_split_title:n { ##1 }
+                  \begin{\l_enotez_list_type_tl}
+                }
+              \tl_if_eq:xxT
+                { \int_use:N \l_enotez_tmpa_int }
+                { \prop_get:Nn \g_enotez_endnote_split_prop { ##1 } }
+                {
+                  \enotez_get_note:nn { #1 } { ##1 }
+                  \bool_if:NT \l_enotez_print_note_bool
                     {
-                      \bool_if:NT \l_enotez_hyperfootnotes_bool
-                        {
-                          \box_move_up:nn { 1em }
-                            { \hbox:n { \hypertarget { enz.##1 } { } } }
-                        }
-                      \tl_use:N \l_enotez_list_number_format_tl
-                      \tl_if_eq:nxTF { a }
-                        { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
-                        { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
-                        { \tl_use:N \l_enotez_endnote_mark_tl }
+                      \item
+                        [
+                          \enotez_list_number:n
+                            {
+                              \bool_if:NT \l_enotez_hyperfootnotes_bool
+                                {
+                                  \box_move_up:nn { 1em }
+                                    { \hbox:n { \hypertarget { enz.##1 } { } } }
+                                }
+                              \tl_use:N \l_enotez_list_number_format_tl
+                              \tl_if_eq:nxTF { a }
+                                { \prop_get:Nn \g_enotez_endnote_man_prop { ##1 } }
+                                { \enotez_counter_format:V \l_enotez_endnote_mark_tl }
+                                { \tl_use:N \l_enotez_endnote_mark_tl }
+                            }
+                        ]
+                      \tl_use:N \l_enotez_endnote_text_tl
                     }
-                ]
-              \tl_use:N \l_enotez_endnote_text_tl
+                }
+              \tl_if_blank:VF \l_enotez_tmpc_tl { \end{\l_enotez_list_type_tl} }
             }
+          \int_incr:N \l_enotez_tmpa_int
         }
-      \end{\l_enotez_list_type_tl}
     \group_end:
   }
 
@@ -414,12 +449,14 @@
 % the titles in between the splits:
 \cs_new:Npn \enotez_read_splitted_title:nn #1#2
   {
-    \tl_set:Nn \l_tmpa_tl { #1 }
-    \tl_replace_all:Nnn \l_tmpa_tl { <name> }
-      { \enotez_first_upper:V \l_enotez_split_tl }
-    \tl_replace_all:Nnn \l_tmpa_tl { <ref> }
-      { \prop_get:Nn \g_enotez_endnote_sect_prop { #2 } }
-    \tl_use:N \l_tmpa_tl
+    \group_begin:
+      \tl_set:Nn \l_tmpa_tl { #1 }
+      \tl_replace_all:Nnn \l_tmpa_tl { <name> }
+        { \enotez_first_upper:V \l_enotez_split_tl }
+      \tl_replace_all:Nnn \l_tmpa_tl { <ref> }
+        { \prop_get:Nn \g_enotez_endnote_sect_prop { #2 } }
+      \tl_use:N \l_tmpa_tl
+    \group_end:
   }
 \cs_generate_variant:Nn \enotez_read_splitted_title:nn { V }
 
@@ -440,20 +477,6 @@
         \prop_get:NnN \g_enotez_endnote_split_prop { #2 } \l_enotez_tmpa_tl
         \bool_if:NTF \l_enotez_split_bool
           {
-            \tl_if_eq:NNF \l_enotez_tmpa_tl \l_enotez_tmpb_tl
-              {
-                \tl_if_blank:VTF \l_enotez_splitted_list_sectioning_tl
-                  {
-                    \tl_if_eq:VnTF \l_enotez_split_tl { section }
-                      { \subsection* }
-                      { \section* }
-                  }
-                  { \use:c { \l_enotez_splitted_list_sectioning_tl } }
-                {
-                  \enotez_read_splitted_title:Vn
-                    \l_enotez_splitted_title_tl { #2 }
-                }
-              }
             \bool_set_true:N \l_enotez_print_note_bool
             \prop_gpop:NnN \g_enotez_endnote_mark_prop { #2 } \l_enotez_endnote_mark_tl
             \prop_gpop:NnN \g_enotez_endnote_text_prop { #2 } \l_enotez_endnote_text_tl
@@ -468,8 +491,30 @@
               }
               { \bool_set_false:N \l_enotez_print_note_bool }
           }
-        \prop_get:NnN \g_enotez_endnote_split_prop { #2 } \l_enotez_tmpb_tl
       }
+  }
+
+\cs_new:Npn \enotez_get_split_title:n #1
+  {
+    \prop_get:NnN \g_enotez_endnote_split_prop { #1 } \l_enotez_tmpa_tl
+    \bool_if:NT \l_enotez_split_bool
+      {
+        \tl_if_eq:NNF \l_enotez_tmpa_tl \l_enotez_tmpb_tl
+          {
+            \tl_if_blank:VTF \l_enotez_splitted_list_sectioning_tl
+              {
+                \tl_if_eq:VnTF \l_enotez_split_tl { section }
+                  { \subsection* }
+                  { \section* }
+              }
+              { \use:c { \l_enotez_splitted_list_sectioning_tl } }
+            {
+              \enotez_read_splitted_title:Vn
+                \l_enotez_splitted_title_tl { #1 }
+            }
+          }
+      }
+    \prop_get:NnN \g_enotez_endnote_split_prop { #1 } \l_enotez_tmpb_tl
   }
 
 % the mark in the list:
@@ -552,6 +597,7 @@
                  - enable endnotes in captions with KOMA classes, `memoir' and
                    the `caption' package
 2012/07/06 v0.2a - made the splitted list titles customizable
+2012/07/07 v0.3  - list-building rewritten due to a design flaw
 
 % --------------------------------------------------------------------------
 % TODO:
