@@ -181,7 +181,7 @@ allow nested endnotes.
 
 \enotez enables nested endnotes properly and has another mechanism of customizing
 the list of endnotes which is easily extendable. One of the main features  of
-\enotez is a splitted list of endnotes in which the notes are automatically
+\enotez is a split list of endnotes in which the notes are automatically
 separated by the sections or chapters they were set in, see section~\ref{sec:split}
 for more information.
 
@@ -199,7 +199,7 @@ note mark.
  This is some text.\endnote{With an endnote.}
 \end{beispiel}
 There's not really much more to it. It is possible to add a custom mark by
-using the optional argument but that should be needed too often. \cmd{endnote}
+using the optional argument but that shouldn't be needed too often. \cmd{endnote}
 works fine inside tables, minipages, floats and captions\footnote{This has been
 tested with the standard classes, \paket*{memoir}, and the \paket*{KOMA-Script}
 classes, with and without the \paket*{caption} package. If you're using another
@@ -313,7 +313,7 @@ If you wanted superscripted numbers, you could also redefine \cmd{enmark}.
 \end{beschreibung}
 
 \subsubsection{The \code{list} Template}
-The \code{paragraph} template's interface is defined as follows:
+The \code{list} template's interface is defined as follows:
 \begin{beispiel}[code only]
  \DeclareTemplateInterface{enotez-list}{list}{1}
    {
@@ -345,7 +345,7 @@ one defined with the power of \paket{enumitem}.
 Not to be misunderstood: you can use \cmd{printendnotes} as often as you like,
 possibly after each section. That is \emph{not} what is meant here. Let's
 suppose you are writing a book and have many endnotes in many chapters. It
-would be nice if the list of endnotes at the end of the book could be splitted
+would be nice if the list of endnotes at the end of the book could be split
 into parts for each chapter. This section describes how you can achieve that with
 \enotez.
 
@@ -365,7 +365,7 @@ You'll need to tell \enotez that you want to split the notes into groups.
  \Option{split-title}{<tokenlist>}\Default{Notes from <name> <ref>}
    The title that will be inserted between the splits. \code{<name>} is replaced
    by \code{Section} for \key*{split}{section} and \code{Chapter} for
-   \key*{split}{section}. \code{<ref>} is replaced by the corresponding
+   \key*{split}{chapter}. \code{<ref>} is replaced by the corresponding
    \cmd*{thesection} or \cmd*{thechapter}.
 \end{beschreibung}
 Set the \key{split} option:
@@ -391,7 +391,7 @@ Please beware that the option \key{reset} also impacts here: the numbing will
 be reset for each section or chapter, depending on the choice you made for
 \key{split}.
 
-\enotez comes with an example document for a splitted list which you should
+\enotez comes with an example document for a split list which you should
 find in the same folder as this documentation.
 
 \section{hyperref Support}

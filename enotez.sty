@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate }
 \ProvidesExplPackage
   {enotez}
-  {2012/07/07}
-  {0.3}
+  {2012/07/24}
+  {0.3a}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -125,7 +125,7 @@
 \cs_new:Npn \enotez_endnote:nn #1#2
   {
     \int_gincr:N \g_enotez_endnote_id_int
-    \IfNoValueTF { #1 }
+    \quark_if_no_value:nTF { #1 }
       {
         \int_gincr:N \g_enotez_endnote_mark_int
         \enotez_write_mark:nn
@@ -282,11 +282,11 @@
 % --------------------------------------------------------------------------
 % the actual user command; I would use \NewDocumentCommand but that would
 % disable compatibility with `fnpct'
-\cs_new:Npn \endnote
+\cs_new_protected:Npn \endnote
   {
     \peek_meaning_ignore_spaces:NTF [
       { \enotez_endnote_aux:w }
-      { \enotez_endnote:nn { \NoValue } }
+      { \enotez_endnote:nn { \q_no_value } }
   }
 
 \cs_new:Npn \enotez_endnote_aux:w [#1]#2
@@ -598,6 +598,8 @@
                    the `caption' package
 2012/07/06 v0.2a - made the splitted list titles customizable
 2012/07/07 v0.3  - list-building rewritten due to a design flaw
+2012/07/24 v0.3a - adapted to deprecated functions in l3kernel and l3packages,
+                   removed debugging leftover
 
 % --------------------------------------------------------------------------
 % TODO:
