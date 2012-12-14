@@ -67,13 +67,8 @@
 \DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
 
 % Layout:
-\usepackage[osf]{libertine}
-\cnpkgcolors{
-  main   => cnpkgred ,
-  key    => yellow!40!brown ,
-  module => cnpkgblue ,
-  link   => black!90
-}
+% \usepackage{libertine}
+\cnpkgusecolorscheme{friendly}
 \renewcommand*\othersectionlevelsformat[3]{%
   \textcolor{main}{#3\autodot}\enskip}
 \renewcommand*\partformat{%
