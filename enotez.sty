@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate }
 \ProvidesExplPackage
   {enotez}
-  {2012/12/14}
-  {0.3b}
+  {2012/12/30}
+  {0.4}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -87,6 +87,10 @@
       \cs_set_eq:Nc \enotez_counter_format:n { int_to_ \l_keys_choice_tl :n }    ,
     counter-format   .generate_choices:n =
       { arabic , alph , Alph , roman , Roman }                                   ,
+    mark-format      .code:n             =
+      \cs_set:Npn \enmarkstyle { #1 }                                            ,
+    mark-cs          .code:n             =
+      \cs_set:Npn \enotezwritemark { #1 }                                        ,
     totoc            .choice_code:n      =
       \tl_if_eq:VnTF \l_keys_choice_tl { false }
         { \bool_set_false:N \l_enotez_totoc_bool }
@@ -117,8 +121,8 @@
 \cs_new:Npn \enotez_write_mark:nn #1#2
   {
     \bool_if:NTF \l_enotez_hyperfootnotes_bool
-      { \textsuperscript { \hyperlink { enz.#1 } { #2 } } }
-      { \textsuperscript { #2 } }
+      { \enotezwritemark { \hyperlink { enz.#1 } { \enmarkstyle #2 } } }
+      { \enotezwritemark { \enmarkstyle #2 } }
   }
 
 % the internal endnote:
@@ -519,8 +523,12 @@
     \prop_get:NnN \g_enotez_endnote_split_prop { #1 } \l_enotez_tmpb_tl
   }
 
-% the mark in the list:
-\cs_new:Npn \enmark #1 { #1 . }
+% the marks in the list:
+\cs_new:Npn   \enmark #1 { #1 . }
+
+% the marks in the text:
+\cs_new:Npn   \enmarkstyle { }
+\cs_new_eq:NN \enotezwritemark \textsuperscript
 
 % internal printendnotes:
 \cs_new:Npn \enotez_print_endnotes:nn #1#2
@@ -604,6 +612,8 @@
                    removed debugging leftover
 2012/12/14 v0.3b - bug fix: works again when used with a KOMA class and an
                    endnote is used inside a caption
+2012/12/30 v0.4  - new options `mark-cs' and `mark-format', redefinable
+                   commands \enmarkstyle and \enotezwritemark
 
 % --------------------------------------------------------------------------
 % TODO:

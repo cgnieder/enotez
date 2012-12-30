@@ -56,6 +56,8 @@
   endnotemark,
   endnotetext,
   enmark,
+  enmarkstyle,
+  enotezwritemark,
   kant,
   phantomsection,
   printendnotes,
@@ -63,7 +65,7 @@
   splitendnotes,
   textsuperscript
 }
-
+\setenotez{mark-cs=\textsu}
 \DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
 
 % Layout:
@@ -244,6 +246,12 @@ or with the setup command.
    \cmd{printendnotes} has been invoked.
  \Option{counter-format}{arabic|alph|Alph|roman|Roman}\Default{arabic}
    Change the format of the endnote counter.
+ \Option{mark-format}{<code>}\Default
+   Redefine \cmd{enmarkstyle} to execute \code{<code>}. This command is placed
+   directly before the endnote mark in the text.
+ \Option{mark-cs}{<command>}\Default{\cmd{textsuperscript}}
+   Lets \cmd{enotezwritemark} to be equal to \code{<command>}. This command is
+   used to typeset the endnote marks in the text and should take one argument.
  \Option{totoc}{section|chapter|false}\Default{false}
    Add an entry to the table of contents.
  \Option{list-style}{<style>}\Default{plain}
