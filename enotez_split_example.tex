@@ -1,7 +1,8 @@
 \documentclass{scrartcl}
 % \documentclass{memoir}
 % \documentclass{article}
-% \usepackage{caption}
+\usepackage[english]{babel}
+\usepackage{caption}
 \usepackage[T1]{fontenc}
 \usepackage{libertine}
 
@@ -12,8 +13,8 @@
 \setenotez{split=section,list-style=section,reset}
 % customize the titles in between, e.g.:
 \setenotez{
-  split-sectioning=textbf,
-  split-title=\par\noindent<name> <ref>:
+%   split-sectioning=addsec,
+%   split-title=\par\noindent<name> <ref>:
 }
 
 \usepackage{fnpct}
@@ -23,6 +24,12 @@
 \usepackage[colorlinks]{hyperref}
 
 \begin{document}
+\makeatletter
+% \texttt{\meaning\@@makecaption}
+\makeatother
+
+\tableofcontents
+
 \section{Test}
 Text\endnote{\kant[1]}. Text\endnote{\kant[2]}. Text\endnote{This time
 with a \textbf{nested}\multendnote{\kant[3];\kant[4]} endnote.}.
