@@ -1,8 +1,8 @@
-\documentclass{scrartcl}
-% \documentclass{memoir}
+% \documentclass{scrartcl}
+\documentclass{memoir}
 % \documentclass{article}
 \usepackage[english]{babel}
-\usepackage{caption}
+% \usepackage{caption}
 \usepackage[T1]{fontenc}
 \usepackage{libertine}
 
@@ -10,9 +10,11 @@
 \usepackage{kantlipsum}
 
 \DeclareInstance{enotez-list}{section}{paragraph}{heading=\section{#1}}
-\setenotez{split=section,list-style=section,reset}
-% customize the titles in between, e.g.:
 \setenotez{
+  split=section,
+  list-style=section,
+  reset,
+% customize the titles in between, e.g.:
 %   split-sectioning=addsec,
 %   split-title=\par\noindent<name> <ref>:
 }

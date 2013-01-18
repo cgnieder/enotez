@@ -28,7 +28,7 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
-\RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , xpatch , scrlfile }
+\RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
   {2013/01/18}
@@ -55,6 +55,7 @@
 \bool_new:N \l__enotez_split_bool
 \bool_new:N \l__enotez_caption_patched_bool
 \bool_new:N \l__enotez_koma_patched_bool
+\bool_new:N \l__enotez_memoir_patched_bool
 
 \tl_new:N   \l__enotez_tmpa_tl
 \tl_new:N   \l__enotez_tmpb_tl
@@ -249,32 +250,41 @@
   }
 
 % if we're in memoir, \@makecaption needs to be patched:
-% TODO: fails, however, when used together with babel and certain
-%        languages such as spanish or french
-\@ifclassloaded { memoir }
+% TODO: fails when caption has been loaded, needs to be reworked
+\AfterClass+ { memoir }
   {
-    \msg_warning:nn { enotez } { captions }
-%     \AtBeginDocument
-%       {
-%         \@ifpackageloaded { caption } { }
-%           {
-%             \xpatchcmd \@makecaption
-%               { \let\@contfnote\footnote }
-%               { \enotez@memoir@disable\let\@contfnote\footnote }{}{}
-%             \xpatchcmd \@makecaption
-%               { \let\footnote\@contfnote }
-%               { \enotez@memoir@enable\let\footnote\@contfnote }{}{}
-%           }
-%       }
-  }{}
+    \AtEndPreamble
+      {
+        \cs_if_exist:cF { ver@caption.sty }
+          {
+            \xpatchcmd \@makecaption
+              { \let\@contfnote\footnote }
+              { \enotez@memoir@disable\let\@contfnote\footnote }
+              { \bool_set_true:N  \l__enotez_memoir_patched_bool }
+              { \bool_set_false:N \l__enotez_memoir_patched_bool }
+            \xpatchcmd \@makecaption
+              { \let\footnote\@contfnote }
+              { \enotez@memoir@enable\let\footnote\@contfnote }
+              { \bool_set_true:N  \l__enotez_memoir_patched_bool }
+              { \bool_set_false:N \l__enotez_memoir_patched_bool }
+          }
+      }
+  }
 
 \AtBeginDocument
   {
     \bool_if:nT
-      { \cs_if_exist_p:N \KOMAClassName && !\l__enotez_koma_patched_bool }
-      { \msg_warning:nn { enotez } { captions } }
-    \bool_if:nT
-      { \cs_if_exist_p:c { ver@caption.sty } && !\l__enotez_caption_patched_bool }
+      {
+        ( \cs_if_exist_p:c { ver@memoir.cls } && !\l__enotez_memoir_patched_bool )
+          ||
+        (
+          !\cs_if_exist_p:c { ver@memoir.cls } &&
+          \cs_if_exist_p:c { ver@caption.sty } &&
+          !\l__enotez_caption_patched_bool
+        )
+          ||
+        ( \cs_if_exist_p:N \KOMAClassName && !\l__enotez_koma_patched_bool )
+      }
       { \msg_warning:nn { enotez } { captions } }
   }
 
