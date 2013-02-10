@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/01/18}
-  {0.4a}
+  {2013/02/10}
+  {0.5}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -77,6 +77,15 @@
 \tl_set:Nn  \l__enotez_chapter_tl { Chapter }
 \tl_new:N   \l__enotez_actual_sectioning_tl
 \tl_new:N   \l__enotez_list_splitted_title_tl
+\tl_new:N   \g__enotez_list_next_preamble_tl
+\tl_new:N   \g__enotez_list_every_preamble_tl
+\tl_new:N   \g__enotez_list_next_postamble_tl
+\tl_new:N   \g__enotez_list_every_postamble_tl
+
+\skip_new:N \l__enotez_list_preamble_skip
+\skip_new:N \l__enotez_list_postamble_skip
+\skip_set_eq:NN \l__enotez_list_preamble_skip \medskipamount
+\skip_set_eq:NN \l__enotez_list_postamble_skip \medskipamount
 
 \int_new:N  \g__enotez_endnote_id_int
 \int_zero:N \g__enotez_endnote_id_int
@@ -128,7 +137,9 @@
       { section , chapter , false } ,
     split-sectioning .tl_set:N           = \l__enotez_splitted_list_sectioning_tl ,
     split-title      .tl_set:N           = \l__enotez_splitted_title_tl ,
-    list-style       .tl_set:N           = \l__enotez_list_instance_tl
+    list-style       .tl_set:N           = \l__enotez_list_instance_tl ,
+    list-preamble-skip .skip_set:N       = \l__enotez_list_preamble_skip ,
+    list-postamble-skip .skip_set:N      = \l__enotez_list_postamble_skip
   }
 \cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
 \cs_generate_variant:Nn \tl_if_eq:nnT  { xx }
@@ -363,7 +374,8 @@
         \addcontentsline { toc } { \l__enotez_totoc_tl } { \l__enotez_list_name_tl }
       }
     \enotez_list_heading:n { \l__enotez_list_name_tl }
-        \group_begin:
+    \enotez_list_preamble:
+    \group_begin:
       \tl_use:N \l__enotez_list_format_tl
       \int_zero:N \l__enotez_tmpa_int
       \int_do_while:nn { \l__enotez_tmpa_int <= \g__enotez_list_printed_int }
@@ -406,6 +418,7 @@
           \int_incr:N \l__enotez_tmpa_int
         }
     \group_end:
+    \enotez_list_postamble:
   }
 
 \DeclareTemplateInterface { enotez-list } { list } { 1 }
@@ -433,6 +446,7 @@
         \addcontentsline { toc } { \l__enotez_totoc_tl } { \l__enotez_list_name_tl }
       }
     \enotez_list_heading:n { \l__enotez_list_name_tl }
+    \enotez_list_preamble:
     \group_begin:
       \tl_use:N \l__enotez_list_format_tl
       \int_zero:N \l__enotez_tmpa_int
@@ -481,6 +495,7 @@
           \int_incr:N \l__enotez_tmpa_int
         }
     \group_end:
+    \enotez_list_postamble:
   }
 
 % some default styles:
@@ -593,6 +608,70 @@
       { \enotez_print_endnotes:nn { \BooleanFalse } { #2 } }
       { \enotez_print_endnotes:nn { #1 } { #2 } }
   }
+
+% --------------------------------------------------------------------------
+% preamble and postamble to the list:
+\cs_new:Npn \enotez_list_preamble:
+  {
+    \tl_if_empty:NTF \g__enotez_list_next_preamble_tl
+      {
+        \tl_if_empty:NF \g__enotez_list_every_preamble_tl
+          {
+            \tl_use:N \g__enotez_list_every_preamble_tl
+            \par
+            \skip_vertical:N \l__enotez_list_preamble_skip
+          }
+      }
+      {
+        \tl_use:N \g__enotez_list_next_preamble_tl
+        \par
+        \skip_vertical:N \l__enotez_list_preamble_skip
+      }
+    \tl_gclear:N \g__enotez_list_next_preamble_tl
+  }
+
+\cs_new:Npn \enotez_list_postamble:
+  {
+    \tl_if_empty:NTF \g__enotez_list_next_postamble_tl
+      {
+        \tl_if_empty:NF \g__enotez_list_every_postamble_tl
+          {
+            \par
+            \skip_vertical:N \l__enotez_list_postamble_skip
+            \tl_use:N \g__enotez_list_every_postamble_tl
+          }
+      }
+      {
+        \par
+        \skip_vertical:N \l__enotez_list_postamble_skip
+        \tl_use:N \g__enotez_list_next_postamble_tl
+      }
+    \tl_gclear:N \g__enotez_list_next_postamble_tl
+  }
+
+\cs_new:Npn \enotez_set_next_preamble:n #1
+  { \tl_gset:Nn \g__enotez_list_next_preamble_tl { #1 } }
+
+\cs_new:Npn \enotez_set_every_preamble:n #1
+  { \tl_gset:Nn \g__enotez_list_every_preamble_tl { #1 } }
+
+\cs_new:Npn \enotez_set_next_postamble:n #1
+  { \tl_gset:Nn \g__enotez_list_next_postamble_tl { #1 } }
+
+\cs_new:Npn \enotez_set_every_postamble:n #1
+  { \tl_gset:Nn \g__enotez_list_every_postamble_tl { #1 } }
+
+\NewDocumentCommand \AtNextEndnotesList { m }
+  { \enotez_set_next_preamble:n { #1 } }
+
+\NewDocumentCommand \AtEveryEndnotesList { m }
+  { \enotez_set_every_preamble:n { #1 } }
+
+\NewDocumentCommand \AfterNextEndnotesList { m }
+  { \enotez_set_next_postamble:n { #1 } }
+
+\NewDocumentCommand \AfterEveryEndnotesList { m }
+  { \enotez_set_every_postamble:n { #1 } }
 
 % --------------------------------------------------------------------------
 % process the options:
@@ -709,6 +788,7 @@
                    commands \enmarkstyle and \enotezwritemark
 2012/01/18 v0.4a - added beginnings of internationalization -- this will need
                    help from users speaking the actual languages
+2013/02/10 v0.5  - \AtNextEndnotesList, \AtEveryEndnotesList
 
 % --------------------------------------------------------------------------
 % TODO:

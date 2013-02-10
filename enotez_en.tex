@@ -153,6 +153,23 @@
 \usepackage{etoolbox}
 \AtBeginEnvironment{beispiel}{\setfnpct{dont-mess-around}}
 \usepackage{enumitem}
+
+\usepackage{marginnote,ragged2e}
+\makeatletter
+\providecommand*\sinceversion[1]{%
+  \@bsphack
+  \marginnote{%
+    \footnotesize\sffamily\RaggedRight
+    \textcolor{black!75}{Introduced in version~#1}}%
+  \@esphack}
+\providecommand*\changedversion[1]{%
+  \@bsphack
+  \marginnote{%
+    \footnotesize\sffamily\RaggedRight
+    \textcolor{black!75}{Changed in version~#1}}%
+  \@esphack}
+\makeatother
+
 \begin{document}
 
 \section{Licence and Requirements}
@@ -188,7 +205,8 @@ As an aside: \enotez is nicely compatible with the \paket{fnpct} package%
 The usage is simple: use \cmd{endnote} in the text where you want to place the
 note mark.
 \begin{beschreibung}
- \befehl{endnote}[<mark>]{<text>} Add an endnote in the text.
+ \Befehl{endnote}[<mark>]{<text>}\newline
+   Add an endnote in the text.
 \end{beschreibung}
 \begin{beispiel}
  This is some text.\endnote{With an endnote.}
@@ -211,8 +229,9 @@ superfluous they are \emph{not} defined by \enotez.
 \subsection{Printing the Notes}
 The notes are printed by using the command \cmd{printendnotes}.
 \begin{beschreibung}
- \befehl{printendnotes}*[<style>] Print the list of endnotes. \code{<style>} is
-   one of the instances explained in section~\ref{ssec:customizing_the_list}.
+ \Befehl{printendnotes}*[<style>]\newline
+   Print the list of endnotes. \code{<style>} is one of the instances explained
+   in section~\ref{ssec:customizing_the_list}.
 \end{beschreibung}
 If used without argument it prints all notes set so far with \cmd{endnote}. The
 current list will then be cleared. All endnotes set after it are stored again
@@ -230,13 +249,38 @@ the endnotes or add another one you again will need at least two runs, maybe mor
 \achtung{\code{Label(s) may have changed. Rerun to get cross-references right.}}
 but may not catch all cases.
 
-\section{Options}
+\enotez provides two commands that allow to set some kinds of preamble and
+postamble to a list, either to every list or only to the next one:
+\begin{beschreibung}
+ \Befehl{AtEveryEndnotesList}{<text>}\newline\sinceversion{0.5}%
+   inserts \code{<text>} between heading and the actual notes every time
+   \cmd{printendnotes} is used.
+ \Befehl{AtNextEndnotesList}\newline\sinceversion{0.5}%
+   inserts \code{<text>} between heading and the actual notes the next time
+   \cmd{printendnotes} is used. This overwrites a possible preamble set with
+   \cmd{AtEveryEndnotesList} for this instance of \cmd{printendnotes}.
+ \Befehl{AfterEveryEndnotesList}{<text>}\newline\sinceversion{0.5}%
+   inserts \code{<text>} after the notes list every time \cmd{printendnotes} is
+   used.
+ \Befehl{AfterNextEndnotesList}\newline\sinceversion{0.5}%
+   inserts \code{<text>} after the notes list the next time \cmd{printendnotes}
+   is used. This overwrites a possible postamble set with
+   \cmd{AfterEveryEndnotesList} for this instance of \cmd{printendnotes}.
+\end{beschreibung}
+If something is inserted with one of these commands the inserted \code{<text>}
+will be followed by a \cmd{par} and a vertical skip for the preamble. The postambles
+follow a \cmd{par} and a vertical skip. The skips can be set using an option,
+see section~\ref{sec:options}.
+
+
+\section{Options}\label{sec:options}
 \subsection{Package Options}
 \enotez has a few package options which should be pretty self-explanatory. They
 can be set either as package options with \verb=\usepackage[<options>]{enotez}=
 or with the setup command.
 \begin{beschreibung}
- \befehl{setenotez}{<options>} Setup command for setting \enotez' options.
+ \Befehl{setenotez}{<options>}\newline
+   Setup command for setting \enotez' options.
  \Option{list-name}{<list name>}\Default{Notes}
    The name of the notes list. This name is used for the heading of the list.
  \Option{reset}{\default{true}|false}\Default{false}
@@ -255,6 +299,14 @@ or with the setup command.
  \Option{list-style}{<style>}\Default{plain}
    Sets the default list style, see section \ref{ssec:customizing_the_list} for
    details.
+ \Option{list-preamble-skip}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
+   Sets the vertical skip that is inserted if a list preamble is inserted by
+   using either \cmd{AtNextEndnotesList} or \cmd{AtEveryEndnotesList}. It's
+   default is set equal to \cmd{medskipamount}.
+ \Option{list-postamble-skip}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
+   Sets the vertical skip that is inserted if a list postamble is inserted by
+   using either \cmd{AfterNextEndnotesList} or \cmd{AfterEveryEndnotesList}.
+   It's default is set equal to \cmd{medskipamount}.
 \end{beschreibung}
 
 \subsection{Customizing the List}\label{ssec:customizing_the_list}
@@ -310,7 +362,8 @@ be typeset with \verb=\textsuperscript=. You could now use it like this:
 
 If you wanted superscripted numbers, you could also redefine \cmd{enmark}. 
 \begin{beschreibung}
- \befehl{enmark} is defined like this: \verb=\newcommand*\enmark[1]{#1.}=
+ \Befehl{enmark}\newline
+   is defined like this: \verb=\newcommand*\enmark[1]{#1.}=
 \end{beschreibung}
 
 \subsubsection{The \code{list} Template}
@@ -402,9 +455,15 @@ p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
 If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the list.
 
+\newpage
+\AtNextEndnotesList{This is an example of a preamble to the list set with
+\cmd{AtNextEndnotesList}.}
+\AfterEveryEndnotesList{\noindent This is an example of a postamble to the list
+set with \cmd{AfterEveryEndnotesList}. Note that it would have started with a
+paragraph indent which was prevented here by using \cmd{noindent}.}
 \printendnotes[addsec]
 
-{\EmbracOff\printbibliography}
+\printbibliography
 
 \setindexpreamble{Section titles are indicated \textbf{bold}, packages
 \textsf{sans serif}, commands \code{\textbackslash\textcolor{code}{brown}}
