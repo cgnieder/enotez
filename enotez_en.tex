@@ -37,7 +37,7 @@
 \docsetup{
   pkg      = enotez ,
   code-box = {
-    backgroundcolor  = gray!7!white ,
+    backgroundcolor  = gray!3!white ,
     skipbelow        = .6\baselineskip plus .5ex minus .5ex ,
     skipabove        = .6\baselineskip plus .5ex minus .5ex ,
     roundcorner      = 3pt ,
@@ -69,7 +69,8 @@
 \DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
 
 % Layout:
-% \usepackage{libertine}
+\usepackage{libertinehologopatch}
+
 \cnpkgusecolorscheme{friendly}
 \renewcommand*\othersectionlevelsformat[3]{%
   \textcolor{main}{#3\autodot}\enskip}
@@ -81,18 +82,15 @@
 \ChangeEmph{[}[,.02em]{]}[.055em,-.08em]
 \ChangeEmph{(}[-.01em,.04em]{)}[.04em,-.05em]
 
-\ExplSyntaxOn
-\NewDocumentCommand \Default {g}
-  {
-    \hfill\llap
-      {
-        \IfNoValueTF { #1 }
-          {(initially~empty)}
-          {Default:~\code{#1}}
-      }
-    \newline
-  }
-\ExplSyntaxOff
+\newcommand*\Default[1]{%
+  \hfill\llap
+    {%
+      \ifblank{#1}%
+        {(initially~empty)}%
+        {Default:~\code{#1}}%
+    }%
+  \newline
+}
 
 \usepackage[backend=biber,style=alphabetic]{biblatex}
 \addbibresource{\jobname.bib}
@@ -197,8 +195,7 @@ the list of endnotes which is easily extendable. One of the main features  of
 separated by the sections or chapters they were set in, see section~\ref{sec:split}
 for more information.
 
-As an aside: \enotez is nicely compatible with the \paket{fnpct} package%
-\footnote{You'll have to use \cmd*{AdaptNote} for the time being, though.}.
+As an aside: \enotez is nicely compatible with the \paket{fnpct} package.
 
 \section{Usage}
 \subsection{Placing the Notes}
@@ -245,8 +242,8 @@ available to \cmd{printendnotes}. If you have nested endnotes they will be writt
 to the \code{aux} file the first time they're printed with \cmd{printendnotes}
 which means you might have to compile your file once more. If you change any of
 the endnotes or add another one you again will need at least two runs, maybe more.
-\enotez tries to warn you in these cases by invoking \LaTeX's warning
-\achtung{\code{Label(s) may have changed. Rerun to get cross-references right.}}
+\enotez tries to warn you in these cases by invoking the warning
+\achtung{\code{Endnotes may have changed. Rerun to get them right.}}
 but may not catch all cases.
 
 \enotez provides two commands that allow to set some kinds of preamble and
@@ -255,14 +252,14 @@ postamble to a list, either to every list or only to the next one:
  \Befehl{AtEveryEndnotesList}{<text>}\newline\sinceversion{0.5}%
    inserts \code{<text>} between heading and the actual notes every time
    \cmd{printendnotes} is used.
- \Befehl{AtNextEndnotesList}\newline\sinceversion{0.5}%
+ \Befehl{AtNextEndnotesList}{<text>}\newline\sinceversion{0.5}%
    inserts \code{<text>} between heading and the actual notes the next time
    \cmd{printendnotes} is used. This overwrites a possible preamble set with
    \cmd{AtEveryEndnotesList} for this instance of \cmd{printendnotes}.
  \Befehl{AfterEveryEndnotesList}{<text>}\newline\sinceversion{0.5}%
    inserts \code{<text>} after the notes list every time \cmd{printendnotes} is
    used.
- \Befehl{AfterNextEndnotesList}\newline\sinceversion{0.5}%
+ \Befehl{AfterNextEndnotesList}{<text>}\newline\sinceversion{0.5}%
    inserts \code{<text>} after the notes list the next time \cmd{printendnotes}
    is used. This overwrites a possible postamble set with
    \cmd{AfterEveryEndnotesList} for this instance of \cmd{printendnotes}.
@@ -299,13 +296,13 @@ or with the setup command.
  \Option{list-style}{<style>}\Default{plain}
    Sets the default list style, see section \ref{ssec:customizing_the_list} for
    details.
- \Option{list-preamble-skip}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
-   Sets the vertical skip that is inserted if a list preamble is inserted by
-   using either \cmd{AtNextEndnotesList} or \cmd{AtEveryEndnotesList}. It's
-   default is set equal to \cmd{medskipamount}.
- \Option{list-postamble-skip}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
-   Sets the vertical skip that is inserted if a list postamble is inserted by
-   using either \cmd{AfterNextEndnotesList} or \cmd{AfterEveryEndnotesList}.
+ \Option{list-preamble-skip}{<skip>}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
+   Sets the vertical skip (a rubber length) that is inserted if a list preamble
+   is inserted by using either \cmd{AtNextEndnotesList} or \cmd{AtEveryEndnotesList}.
+   It's default is set equal to \cmd{medskipamount}.
+ \Option{list-postamble-skip}{<skip>}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
+   Sets the vertical skip (a rubber length) that is inserted if a list postamble
+   is inserted by using either \cmd{AfterNextEndnotesList} or \cmd{AfterEveryEndnotesList}.
    It's default is set equal to \cmd{medskipamount}.
 \end{beschreibung}
 

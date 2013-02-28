@@ -31,7 +31,7 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/02/10}
+  {2013/02/28}
   {0.5}
   {Endnotes for LaTeX2e}
 
@@ -81,6 +81,7 @@
 \tl_new:N   \g__enotez_list_every_preamble_tl
 \tl_new:N   \g__enotez_list_next_postamble_tl
 \tl_new:N   \g__enotez_list_every_postamble_tl
+\tl_new:N   \l__enotez_footnotes_tl
 
 \skip_new:N \l__enotez_list_preamble_skip
 \skip_new:N \l__enotez_list_postamble_skip
@@ -108,6 +109,7 @@
 
 \keys_define:nn { enotez }
   {
+    footnotes        .bool_set:N         = \l__enotez_footnotes_tl ,
     list-name        .tl_set:N           = \l__enotez_list_name_tl ,
     reset            .bool_set:N         = \l__enotez_reset_bool ,
     % TODO: add symbols and other possible formats, use cntformats?
@@ -322,13 +324,18 @@
   }
 
 % a try to check if a rerun is necessary:
+\tl_new:N \l__enotez_change_tl
+
 \AtEndDocument
   {
     \cs_set:Npn \enotez@note #1#2#3#4#5#6
       {
-        \def\reserved@a{#2}
-        \expandafter\ifx\csname enotez@#1@note \endcsname\reserved@a\else
-        \@tempswatrue\fi
+        \tl_set:Nn \l__enotez_change_tl { #2 }
+        \tl_if_eq:cNF { enotez@#1@note } \l__enotez_change_tl
+          {
+            \@latex@warning@no@line
+              { Endnotes~may~have~changed.~Rerun~to~get~them~right. }
+          }
       }
   }
 
@@ -788,7 +795,7 @@
                    commands \enmarkstyle and \enotezwritemark
 2012/01/18 v0.4a - added beginnings of internationalization -- this will need
                    help from users speaking the actual languages
-2013/02/10 v0.5  - \AtNextEndnotesList, \AtEveryEndnotesList
+2013/02/28 v0.5  - \AtNextEndnotesList, \AtEveryEndnotesList
 
 % --------------------------------------------------------------------------
 % TODO:
