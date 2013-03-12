@@ -31,7 +31,7 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/02/28}
+  {2013/03/12}
   {0.5}
   {Endnotes for LaTeX2e}
 
@@ -217,9 +217,9 @@
 
 % --------------------------------------------------------------------------
 % in some cases caption making commands need to be patched. preparations:
-\cs_new:Npn \enotez_tmp_endnote:nn {}
+\cs_new:Npn \__enotez_tmp_endnote:nn {}
 
-\cs_new:Npn \enotez_caption_endnote:nn #1#2
+\cs_new_protected:Npn \enotez_caption_endnote:nn #1#2
   {
     \quark_if_no_value:nTF { #1 }
       {
@@ -230,19 +230,19 @@
       { \enotez_write_mark:nn { \int_use:N \g__enotez_endnote_id_int } { #1 } }
   }
 
-\cs_new:Npn \enotez@koma@disable
+\cs_new_protected:Npn \enotez@koma@disable
   { \cs_set_eq:NN \enotez_endnote:nn \enotez_caption_endnote:nn }
 
-\cs_new:Npn \enotez@memoir@disable
+\cs_new_protected:Npn \enotez@memoir@disable
   {
-    \cs_set_eq:NN \enotez_tmp_endnote:nn \enotez_endnote:nn
+    \cs_set_eq:NN \__enotez_tmp_endnote:nn \enotez_endnote:nn
     \cs_set_eq:NN \enotez_endnote:nn \enotez_caption_endnote:nn
   }
 
-\cs_new:Npn \enotez@memoir@enable
-  { \cs_set_eq:NN \enotez_endnote:nn \enotez_tmp_endnote:nn }
+\cs_new_protected:Npn \enotez@memoir@enable
+  { \cs_set_eq:NN \enotez_endnote:nn \__enotez_tmp_endnote:nn }
 
-\cs_new:Npn \enotez@caption@disable
+\cs_new_protected:Npn \enotez@caption@disable
   {
     \xpatchcmd \caption@@make
       { \caption@@@make }
@@ -287,6 +287,9 @@
 \AtBeginDocument
   {
     \bool_if:nT
+      { \cs_if_exist_p:c { ver@caption.sty } && !\l__enotez_caption_patched_bool }
+      { \AfterPackage+ { caption } { \enotez@caption@disable } }
+    \bool_if:nT
       {
         ( \cs_if_exist_p:c { ver@memoir.cls } && !\l__enotez_memoir_patched_bool )
           ||
@@ -309,11 +312,11 @@
 % #4 section/chapter
 % #5 a/m (automatic/manually)
 % #6 text
-\cs_new:Npn \enotez_save_note:nnnnnn #1#2#3#4#5#6
+\cs_new_protected:Npn \enotez_save_note:nnnnnn #1#2#3#4#5#6
   { \iow_now:Nn \@auxout { \enotez@note { #1 } { #2 } { #3 } { #4 } { #5 } { #6 } } }
 \cs_generate_variant:Nn \enotez_save_note:nnnnnn { xxxxnn , xnxxnn }
 
-\cs_new:Npn \enotez@note #1#2#3#4#5#6
+\cs_new_protected:Npn \enotez@note #1#2#3#4#5#6
   {
     \expandafter \xdef \csname enotez@#1@note \endcsname { #2 }
     \prop_gput:Nnn \g__enotez_endnote_mark_prop  { #1 } { #2 }
@@ -328,7 +331,7 @@
 
 \AtEndDocument
   {
-    \cs_set:Npn \enotez@note #1#2#3#4#5#6
+    \cs_set_protected:Npn \enotez@note #1#2#3#4#5#6
       {
         \tl_set:Nn \l__enotez_change_tl { #2 }
         \tl_if_eq:cNF { enotez@#1@note } \l__enotez_change_tl
@@ -511,7 +514,7 @@
 \DeclareInstance { enotez-list } { itemize } { list } { list-type = itemize }
 
 % the titles in between the splits:
-\cs_new:Npn \enotez_read_splitted_title:nn #1#2
+\cs_new_protected:Npn \enotez_read_splitted_title:nn #1#2
   {
     \group_begin:
       \tl_set:Nn \l__enotez_tmpa_tl { #1 }
@@ -522,15 +525,15 @@
       \tl_gset_eq:NN \l__enotez_tmpb_tl \l__enotez_tmpa_tl
     \group_end:
   }
-\cs_generate_variant:Nn \enotez_read_splitted_title:nn { V }
+\cs_generate_variant:Nn \enotez_read_splitted_title:nn { V , x }
 \cs_generate_variant:Nn \tl_replace_all:Nnn { Nnx }
 
-\cs_new:Npn \enotez_first_upper:n #1
+\cs_new_protected:Npn \enotez_first_upper:n #1
   { \tl_to_uppercase:n { \tl_head:n { #1 } } \tl_tail:n { #1 } }
 \cs_generate_variant:Nn \enotez_first_upper:n { V }
 
 % determine which note's next:
-\cs_new:Npn \enotez_get_note:nn #1#2
+\cs_new_protected:Npn \enotez_get_note:nn #1#2
   {
     \IfBooleanTF { #1 }
       {
@@ -559,7 +562,7 @@
       }
   }
 
-\cs_new:Npn \enotez_get_split_title:n #1
+\cs_new_protected:Npn \enotez_get_split_title:n #1
   {
     \prop_get:NnN \g__enotez_endnote_split_prop { #1 } \l__enotez_tmpa_tl
     \bool_if:NT \l__enotez_split_bool
@@ -569,8 +572,7 @@
             \tl_if_eq:VnTF \l__enotez_split_tl { section }
               { \tl_set_eq:NN \l__enotez_actual_sectioning_tl \l__enotez_section_tl }
               { \tl_set_eq:NN \l__enotez_actual_sectioning_tl \l__enotez_chapter_tl }
-            \exp_args:Nx
-            \enotez_read_splitted_title:nn
+            \enotez_read_splitted_title:xn
               { \l__enotez_splitted_title_tl }
               { #1 }
             \tl_if_blank:VTF \l__enotez_splitted_list_sectioning_tl
@@ -594,7 +596,7 @@
 \cs_new_eq:NN \enotezwritemark \textsuperscript
 
 % internal printendnotes:
-\cs_new:Npn \enotez_print_endnotes:nn #1#2
+\cs_new_protected:Npn \enotez_print_endnotes:nn #1#2
   {
     \IfNoValueTF { #2 }
       { \UseInstance { enotez-list } { \l__enotez_list_instance_tl } }
@@ -618,7 +620,7 @@
 
 % --------------------------------------------------------------------------
 % preamble and postamble to the list:
-\cs_new:Npn \enotez_list_preamble:
+\cs_new_protected:Npn \enotez_list_preamble:
   {
     \tl_if_empty:NTF \g__enotez_list_next_preamble_tl
       {
@@ -637,7 +639,7 @@
     \tl_gclear:N \g__enotez_list_next_preamble_tl
   }
 
-\cs_new:Npn \enotez_list_postamble:
+\cs_new_protected:Npn \enotez_list_postamble:
   {
     \tl_if_empty:NTF \g__enotez_list_next_postamble_tl
       {
@@ -656,16 +658,16 @@
     \tl_gclear:N \g__enotez_list_next_postamble_tl
   }
 
-\cs_new:Npn \enotez_set_next_preamble:n #1
+\cs_new_protected:Npn \enotez_set_next_preamble:n #1
   { \tl_gset:Nn \g__enotez_list_next_preamble_tl { #1 } }
 
-\cs_new:Npn \enotez_set_every_preamble:n #1
+\cs_new_protected:Npn \enotez_set_every_preamble:n #1
   { \tl_gset:Nn \g__enotez_list_every_preamble_tl { #1 } }
 
-\cs_new:Npn \enotez_set_next_postamble:n #1
+\cs_new_protected:Npn \enotez_set_next_postamble:n #1
   { \tl_gset:Nn \g__enotez_list_next_postamble_tl { #1 } }
 
-\cs_new:Npn \enotez_set_every_postamble:n #1
+\cs_new_protected:Npn \enotez_set_every_postamble:n #1
   { \tl_gset:Nn \g__enotez_list_every_postamble_tl { #1 } }
 
 \NewDocumentCommand \AtNextEndnotesList { m }
@@ -795,7 +797,10 @@
                    commands \enmarkstyle and \enotezwritemark
 2012/01/18 v0.4a - added beginnings of internationalization -- this will need
                    help from users speaking the actual languages
-2013/02/28 v0.5  - \AtNextEndnotesList, \AtEveryEndnotesList
+2013/03/12 v0.5  - \AtNextEndnotesList, \AtEveryEndnotesList
+                 - use protected internal commands where appropriate
+                 - fix wrong endnote marks when used with the `caption'
+                   package
 
 % --------------------------------------------------------------------------
 % TODO:

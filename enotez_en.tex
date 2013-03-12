@@ -196,6 +196,8 @@ separated by the sections or chapters they were set in, see section~\ref{sec:spl
 for more information.
 
 As an aside: \enotez is nicely compatible with the \paket{fnpct} package.
+Version~0.2j or newer of \paket{fnpct} automatically detects \enotez and adapts
+the \cmd{endnote} command.
 
 \section{Usage}
 \subsection{Placing the Notes}
@@ -213,13 +215,16 @@ using the optional argument but that shouldn't be needed too often. \cmd{endnote
 works fine inside tables, minipages, floats and captions\footnote{This has been
 tested with the standard classes, \paket*{memoir}, and the \paket*{KOMA-Script}
 classes, with and without the \paket*{caption} package. If you're using another
-package that redefines \cmd*{caption} it might not work.}. Endnotes can also be
-nested. Since that seemed making a pair \cmd{endnotemark}/\cmd{endnotetext}
+package that redefines \cmd*{caption} or are using another class it might not
+work. Before you place a note in a caption you should re-think the idea anyway.}.
+Endnotes can also be nested.
+
+Since this functionality seemed making a pair \cmd{endnotemark}/\cmd{endnotetext}
 superfluous they are \emph{not} defined by \enotez.
 \begin{beispiel}
  This is some text.\endnote{With another endnote.\endnote{This is a
  nested\endnote{And another level deeper\ldots} endnote!}}
- % uses package `kantlipsum':
+ % uses package `kantlipsum' to produce dummy text:
  Of course you can have several paragraphs\endnote{\kant[1-3]} in an endnote.
 \end{beispiel}
 
@@ -391,7 +396,8 @@ Again you can define your own instances using whatever list you want, possibly
 one defined with the power of \paket{enumitem}.
 
 \section{Collect Notes Section-wise and Print List Stepwise}\label{sec:split}
-\emph{This feature is experimental and has some limitations}.
+\emph{This feature is experimental and surely has some limitations. Please let
+me know if something doesn't work as expected}.
 
 Not to be misunderstood: you can use \cmd{printendnotes} as often as you like,
 possibly after each section. That is \emph{not} what is meant here. Let's
@@ -452,7 +458,7 @@ p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
 If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the list.
 
-\newpage
+
 \AtNextEndnotesList{This is an example of a preamble to the list set with
 \cmd{AtNextEndnotesList}.}
 \AfterEveryEndnotesList{\noindent This is an example of a postamble to the list
