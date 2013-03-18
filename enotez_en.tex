@@ -1,7 +1,7 @@
 % arara: pdflatex
-% arara: makeindex: { sort: true, style: enotez_en.ist }
-% arara: biber
-% arara: pdflatex
+% !arara: makeindex: { sort: true, style: enotez_en.ist }
+% !arara: biber
+% !arara: pdflatex
 % arara: pdflatex
 % --------------------------------------------------------------------------
 % the ENOTEZ package
@@ -133,19 +133,21 @@
 }
 \end{filecontents*}
 
-\usepackage{makeidx}
+\usepackage{imakeidx}
 \begin{filecontents*}{\jobname.ist}
  heading_prefix "{\\bfseries "
  heading_suffix "\\hfil}\\nopagebreak\n"
  headings_flag  1
- delim_0 "\\dotfill "
- delim_1 "\\dotfill "
- delim_2 "\\dotfill "
- delim_r "\\textendash"
+ delim_0 "\\dotfill\\hyperpage{"
+ delim_1 "\\dotfill\\hyperpage{"
+ delim_2 "\\dotfill\\hyperpage{"
+ delim_r "}\\textendash\\hyperpage{"
+ delim_t "}"
  suffix_2p "\\nohyperpage{\\,f.}"
  suffix_3p "\\nohyperpage{\\,ff.}"
 \end{filecontents*}
-\makeindex
+\indexsetup{noclearpage,othercode=\footnotesize}
+\makeindex[options={-s \jobname.ist},intoc,columns=3]
 
 \usepackage{kantlipsum}
 \usepackage{etoolbox}
@@ -471,7 +473,7 @@ paragraph indent which was prevented here by using \cmd{noindent}.}
 
 \printbibliography
 
-\setindexpreamble{Section titles are indicated \textbf{bold}, packages
+\indexprologue{\noindent Section titles are indicated \textbf{bold}, packages
 \textsf{sans serif}, commands \code{\textbackslash\textcolor{code}{brown}}
  and options \textcolor{key}{\code{yellow}}.\par\bigskip}
 
