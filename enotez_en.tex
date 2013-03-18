@@ -189,6 +189,9 @@ best solution in every case\footnote{You have to write the actual notes in the
 preamble or a separate file and reference them in the text.}. It also does not
 allow nested endnotes.
 
+While \enotez worked in tests nicely with the \klasse{memoir} class please keep
+in mind that \klasse{memoir} provides its own endnote mechanism.
+
 \enotez enables nested endnotes properly and has another mechanism of customizing
 the list of endnotes which is easily extendable. One of the main features  of
 \enotez is a split list of endnotes in which the notes are automatically
@@ -213,7 +216,7 @@ note mark.
 There's not really much more to it. It is possible to add a custom mark by
 using the optional argument but that shouldn't be needed too often. \cmd{endnote}
 works fine inside tables, minipages, floats and captions\footnote{This has been
-tested with the standard classes, \paket*{memoir}, and the \paket*{KOMA-Script}
+tested with the standard classes, \klasse{memoir}, and the \klasse{KOMA-Script}
 classes, with and without the \paket*{caption} package. If you're using another
 package that redefines \cmd*{caption} or are using another class it might not
 work. Before you place a note in a caption you should re-think the idea anyway.}.

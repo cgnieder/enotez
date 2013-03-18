@@ -555,7 +555,7 @@
                 \bool_set_true:N \l__enotez_print_note_bool
                 \prop_gpop:NnN \g__enotez_endnote_mark_prop { #2 } \l__enotez_endnote_mark_tl
                 \prop_gpop:NnN \g__enotez_endnote_text_prop { #2 } \l__enotez_endnote_text_tl
-                \prop_gdel:Nn  \g__enotez_endnote_split_prop { #2 }
+                \prop_gremove:Nn  \g__enotez_endnote_split_prop { #2 }
               }
               { \bool_set_false:N \l__enotez_print_note_bool }
           }
@@ -801,6 +801,7 @@
                  - use protected internal commands where appropriate
                  - fix wrong endnote marks when used with the `caption'
                    package
+2013/03/18 v0.5a - adapt to deprecated expl3 commands
 
 % --------------------------------------------------------------------------
 % TODO:
