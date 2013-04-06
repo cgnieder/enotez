@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/03/18}
-  {0.5a}
+  {2013/04/06}
+  {0.6}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -164,6 +164,9 @@
     \quark_if_no_value:nTF { #1 }
       {
         \int_gincr:N \g__enotez_endnote_mark_int
+        \cs_gset:cpx { @currentlabel }
+          { \enotez_counter_format:V \g__enotez_endnote_mark_int }
+        \cs_gset_eq:NN \theendnote \@currentlabel
         \enotez_write_mark:nn
           { \int_use:N \g__enotez_endnote_id_int }
           { \enotez_counter_format:V \g__enotez_endnote_mark_int }
@@ -190,6 +193,8 @@
           }
       }
       {
+        \cs_gset:cpx { @currentlabel } { #1 }
+        \cs_gset_eq:NN \theendnote \@currentlabel
         \enotez_write_mark:nn { \int_use:N \g__enotez_endnote_id_int } { #1 }
         \tl_set:Nn \l__enotez_tmpa_tl { chapter }
         \bool_if:nTF
@@ -802,6 +807,8 @@
                  - fix wrong endnote marks when used with the `caption'
                    package
 2013/03/18 v0.5a - adapt to deprecated expl3 commands
+2013/04/06 v0.6  - \endnote sets \@currentlabel so endnotes can be referenced
+                   with \label{} and \ref{}
 
 % --------------------------------------------------------------------------
 % TODO:

@@ -1,7 +1,6 @@
 % arara: pdflatex
-% !arara: makeindex: { sort: true, style: enotez_en.ist }
-% !arara: biber
-% !arara: pdflatex
+% arara: biber
+% arara: pdflatex
 % arara: pdflatex
 % --------------------------------------------------------------------------
 % the ENOTEZ package
@@ -47,11 +46,14 @@
 }
 
 \addcmds{
+  @endnotemark,
+  @ifnextchar,
   appendix,
   chapter,
   cmd,
   DeclareInstance,
   DeclareTemplateInterface,
+  DeclareTranslation,
   endnote,
   endnotemark,
   endnotetext,
@@ -63,7 +65,8 @@
   printendnotes,
   setenotez,
   splitendnotes,
-  textsuperscript
+  textsuperscript,
+  theendnote
 }
 \setenotez{mark-cs=\textsu}
 \DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
@@ -114,22 +117,90 @@
 
 \usepackage{filecontents}
 \begin{filecontents*}{\jobname.bib}
-@package{endnotes,
+@package{pkg:babel,
+  title   = {babel},
+  author  = {Johannes Braams},
+  date    = {2008-07-08},
+  version = {3.8m},
+  url     = {http://mirror.ctan.org/macros/latex/required/babel/base}
+}
+@package{pkg:endnotes,
   title      = {endnotes},
   author     = {Robin Fairbairns},
   authortype = {current maintainer},
   date       = {2003-01-15},
   version    = {NA},
-  url        = {http://www.ctan.org/pkg/endnotes},
-  urldate    = {2012-07-03}
+  url        = {http://mirror.ctan.org/macros/latex/contrib/endnotes}
 }
-@package{sepfootnotes,
+@package{pkg:exsheets,
+  title   = {exsheets},
+  author  = {Clemens Niederberger},
+  date    = {2013-04-04},
+  version = {0.8a},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/exsheets}
+}
+@package{pkg:fnpct,
+  title   = {fnpct},
+  author  = {Clemens Niederberger},
+  date    = {2013-02-28},
+  version = {0.2j},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/fnpct}
+}
+@package{pkg:hyperref,
+  title   = {hyperref},
+  author  = {Heiko Oberdiek and Sebastian Rahtz},
+  date    = {2012-11-06},
+  version = {6.83m},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/hyperref}
+}
+@package{pkg:l3kernel,
+  title      = {l3kernel},
+  author     = {The \LaTeX3 Team},
+  date       = {2013-03-14},
+  version    = {4469},
+  url        = {http://mirror.ctan.org/macros/latex/contrib/l3kernel}
+}
+@package{pkg:l3packages,
+  title      = {l3packages},
+  author     = {The \LaTeX3 Team},
+  date       = {2013-03-12},
+  version    = {4467},
+  url        = {http://mirror.ctan.org/macros/latex/contrib/l3packages}
+}
+@package{cls:memoir,
+  title   = {memoir},
+  author  = {Peter Wilson and Lars Madsen},
+  date    = {2011-03-06},
+  version = {3.6j},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/memoir}
+}
+@package{pkg:polyglossia,
+  title   = {polyglossia},
+  author  = {Arthur Reutenauer and Fran\c cois Charette},
+  date    = {2012-04-29},
+  version = {1.2.1},
+  url     = {http://mirror.ctan.org/macros/xe­tex/la­tex/poly­glos­sia}
+}
+@package{pkg:scrlfile,
+  title   = {scrlfile},
+  author  = {Markus Kohm},
+  date    = {2012-06-15},
+  version = {3.12},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/koma-script}
+}
+@package{pkg:sepfootnotes,
   title   = {sepfootnotes},
   author  = {Eduardo C. Louren\c{c}o de Lima},
-  date    = {2012-03-06},
-  version = {0.1},
-  url     = {http://www.ctan.org/pkg/sepfootnotes},
-  urldate = {2012-07-03}
+  date    = {2013-01-17},
+  version = {0.2},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/sepfootnotes}
+}
+@package{pkg:xpatch,
+  title   = {xpatch},
+  author  = {Enrico Gregorio},
+  date    = {2012-10-02},
+  version = {0.3},
+  url     = {http://mirror.ctan.org/macros/latex/contrib/xpatch}
 }
 \end{filecontents*}
 
@@ -146,7 +217,7 @@
  suffix_2p "\\nohyperpage{\\,f.}"
  suffix_3p "\\nohyperpage{\\,ff.}"
 \end{filecontents*}
-\indexsetup{noclearpage,othercode=\footnotesize}
+\indexsetup{othercode=\footnotesize}
 \makeindex[options={-s \jobname.ist},intoc,columns=3]
 
 \usepackage{kantlipsum}
@@ -172,27 +243,29 @@
 
 \begin{document}
 
-\section{Licence and Requirements}
+\section{Licence and Requirements}\secidx{Licence}
 Permission is granted to copy, distribute and/or modify this software under the
 terms of the \LaTeX\ Project Public License, version 1.3 or later
 (\url{http://www.latex-project.org/lppl.txt}). The package has the status
 ``maintained.''
 
-\enotez needs and loads the following packages: \paket{expl3}, \paket{xparse},
-\paket{xtemplate}, \paket{l3keys2e}, \paket{xpatch} and \paket{scrlfile}.
+\enotez needs and loads the following packages: \paket{expl3}~\cite{pkg:l3kernel},
+\paket{xparse}, \paket{xtemplate} and \paket{l3keys2e}~\cite{pkg:l3packages},
+\paket{xpatch}~\cite{pkg:xpatch} and \paket{scrlfile}~\cite{pkg:scrlfile}.
+\secidx*{Licence}
 
-\section{Motivation}
+\section{Motivation}\secidx{Motivation}
 \enotez is a new implementation of endnotes for \LaTeXe\ since the \paket{endnotes}
-package~\cite{endnotes} has some deficiencies. Nested endnotes, for example, are
-not supported, neither is \paket{hyperref}. The \paket{sepfootnotes} package~\cite{sepfootnotes}
-also provides means for endnotes but actually has a different purpose: to
-separate input and usage both of footnotes and endnotes. So it might not be the
-best solution in every case\footnote{You have to write the actual notes in the
-preamble or a separate file and reference them in the text.}. It also does not
-allow nested endnotes.
+package~\cite{pkg:endnotes} has some deficiencies. Nested endnotes, for example, are
+not supported, neither is \paket{hyperref}~\cite{pkg:hyperref}. The
+\paket{sepfootnotes} package~\cite{pkg:sepfootnotes} also provides means for endnotes
+but actually has a different purpose: to separate input and usage both of
+footnotes and endnotes. So it might not be the best solution in every
+case\footnote{You have to write the actual notes in the preamble or a separate
+file and reference them in the text.}. It also does not allow nested endnotes.
 
-While \enotez worked in tests nicely with the \klasse{memoir} class please keep
-in mind that \klasse{memoir} provides its own endnote mechanism.
+While \enotez worked in tests nicely with the \klasse{memoir}~\cite{cls:memoir}
+class please keep in mind that \klasse{memoir} provides its own endnote mechanism.
 
 \enotez enables nested endnotes properly and has another mechanism of customizing
 the list of endnotes which is easily extendable. One of the main features  of
@@ -200,11 +273,12 @@ the list of endnotes which is easily extendable. One of the main features  of
 separated by the sections or chapters they were set in, see section~\ref{sec:split}
 for more information.
 
-As an aside: \enotez is nicely compatible with the \paket{fnpct} package.
+As an aside: \enotez is nicely compatible with the \paket{fnpct} package~\cite{pkg:fnpct}.
 Version~0.2j or newer of \paket{fnpct} automatically detects \enotez and adapts
 the \cmd{endnote} command.
+\secidx*{Motivation}
 
-\section{Usage}
+\section{Usage}\secidx{Usage}
 \subsection{Placing the Notes}
 The usage is simple: use \cmd{endnote} in the text where you want to place the
 note mark.
@@ -231,6 +305,38 @@ superfluous they are \emph{not} defined by \enotez.
  nested\endnote{And another level deeper\ldots} endnote!}}
  % uses package `kantlipsum' to produce dummy text:
  Of course you can have several paragraphs\endnote{\kant[1-3]} in an endnote.
+\end{beispiel}
+
+The marks of the endnotes in the running text are printed through the command
+\cmd{enotezwritemark} which defaults to \cmd{textsuperscript}. Its argument
+contains the current mark which is preceded by \cmd{enmarkstyle}. Both of these
+commands can be redefined of course to adapt to custom settings. This can also
+be done using options, see section~\ref{sec:options}. The mark of the endnote
+that has been set last is stored in \cmd{theendnote} and in \cmd{@currentlabel}.%
+\sinceversion{0.6}
+
+This could be used to define a command which writes a mark:
+\begin{beispiel}
+ \makeatletter
+ \def\endnotemark{\@ifnextchar[{\@endnotemark}{\@endnotemark[\theendnote]}}
+ \def\@endnotemark[#1]{\enotezwritemark{\enmarkstyle#1}}
+ \makeatother
+ Text\endnotemark
+\end{beispiel}
+Please not that this definition \emph{does not} step the endnote counter but
+either refers to the last number (no optional argument) or uses the one provided
+in the optional argument.
+
+\makeatletter
+\def\endnotemark{\@ifnextchar[{\@endnotemark}{\@endnotemark[\theendnote]}}%
+\def\@endnotemark[#1]{\enotezwritemark{\enmarkstyle#1}}%
+\makeatother
+
+Endnotes can also be labelled and later be referred to:
+\begin{beispiel}
+ The next endnote\endnote{This endnote gets a label.}\label{en:test}
+ has the number~\ref{en:test}. We can use this with the previous definition
+ of \string\endnotemark\endnotemark[\ref{en:test}].
 \end{beispiel}
 
 \subsection{Printing the Notes}
@@ -278,9 +384,9 @@ If something is inserted with one of these commands the inserted \code{<text>}
 will be followed by a \cmd{par} and a vertical skip for the preamble. The postambles
 follow a \cmd{par} and a vertical skip. The skips can be set using an option,
 see section~\ref{sec:options}.
+\secidx*{Usage}
 
-
-\section{Options}\label{sec:options}
+\section{Options}\label{sec:options}\secidx{Options}
 \subsection{Package Options}
 \enotez has a few package options which should be pretty self-explanatory. They
 can be set either as package options with \verb=\usepackage[<options>]{enotez}=
@@ -295,7 +401,7 @@ or with the setup command.
    \cmd{printendnotes} has been invoked.
  \Option{counter-format}{arabic|alph|Alph|roman|Roman}\Default{arabic}
    Change the format of the endnote counter.
- \Option{mark-format}{<code>}\Default
+ \Option{mark-format}{<code>}\Default{}
    Redefine \cmd{enmarkstyle} to execute \code{<code>}. This command is placed
    directly before the endnote mark in the text.
  \Option{mark-cs}{<command>}\Default{\cmd{textsuperscript}}
@@ -418,7 +524,7 @@ You'll need to tell \enotez that you want to split the notes into groups.
 \begin{beschreibung}
  \Option{split}{section|chapter|false}\Default{false}
    Enable the automatic splitting.
- \Option{split-sectioning}{<csname>}\Default
+ \Option{split-sectioning}{<csname>}\Default{}
    The command that is used to display the titles between the splits. It needs
    to be a command that takes one argument and should be entered without the
    leading backslash. If the option is not used \enotez will choose
@@ -455,14 +561,36 @@ be reset for each section or chapter, depending on the choice you made for
 
 \enotez comes with an example document for a split list which you should
 find in the same folder as this documentation.
+\secidx*{Options}
 
-\section{hyperref Support}
+\section{Language Support}\secidx{Language Support}
+\enotez uses the \paket*{translations} package (part of the
+\paket{exsheets}~\cite{pkg:exsheets} bundle) to translate language dependent
+strings. The advantage of this is that language settings with
+\paket{babel}~\cite{pkg:babel} or \paket{polyglossia}~\cite{pkg:polyglossia}
+are detected automatically. However, the available translations are somewhat
+limited due to my limited language knowledge. If you find missing or wrong
+translations you can try to add or correct them by adding the corresponding
+versions of the following lines to your preamble:
+\begin{beispiel}[code only]
+ \DeclareTranslation{English}{enotez-title}{Notes}
+ % ``<name> <ref>'' is a placeholder for e.g. ``section 1'':
+ \DeclareTranslation{English}{enotez-splitted-title}{Notes for <name> <ref>}
+ \DeclareTranslation{English}{enotez-section}{section}
+ \DeclareTranslation{English}{enotez-chapter}{chapter}
+\end{beispiel}
+If you like you can also drop me an email at
+\href{mailto:contact@mychemistry.eu}{contact@mychemistry.eu} and I'll add the
+correct translations to \enotez.
+\secidx*{Language Support}
+
+\section{hyperref Support}\secidx{\paket*{hyperref} Support}[hyperref Support]
 If \paket{hyperref} is loaded and you are using the option \key{totoc} (see
 p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
 
 If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the list.
-
+\secidx*{\paket*{hyperref} Support}[hyperref Support]
 
 \AtNextEndnotesList{This is an example of a preamble to the list set with
 \cmd{AtNextEndnotesList}.}
