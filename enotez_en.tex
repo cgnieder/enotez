@@ -68,7 +68,7 @@
   textsuperscript,
   theendnote
 }
-\setenotez{mark-cs=\textsu}
+\setenotez{mark-cs=\textsu,backref}
 \DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
 
 % Layout:
@@ -407,8 +407,17 @@ or with the setup command.
  \Option{mark-cs}{<command>}\Default{\cmd{textsuperscript}}
    Lets \cmd{enotezwritemark} to be equal to \code{<command>}. This command is
    used to typeset the endnote marks in the text and should take one argument.
+ \Option{backref}{\default{true}|false}\Default{false}
+   \sinceversion{0.7}If set to \code{true} and \paket{hyperref} has been loaded
+   backlinks from the notes in the list to the marks in the text are added.
  \Option{totoc}{section|chapter|false}\Default{false}
    Add an entry to the table of contents.
+ \Option{list-heading}{<sectioning command including argument>}\newline
+   You can use this option to manually set the list heading command, \textit{e.g.},
+   \key{list-heading}{\cmd{chapter}{\#1}} for a numbered heading. The default
+   depends upon if the class you're using provides \cmd{chapter} or not. It
+   either uses \cmd{chapter}* or \cmd{section}*. You can see that you have to
+   refer to the actual heading with \code{\#1}.
  \Option{list-style}{<style>}\Default{plain}
    Sets the default list style, see section \ref{ssec:customizing_the_list} for
    details.
@@ -559,6 +568,18 @@ Please beware that the option \key{reset} also impacts here: the numbing will
 be reset for each section or chapter, depending on the choice you made for
 \key{split}.
 
+\sinceversion{0.7}There are two -- or three, actually -- additional commands:
+\begin{beschreibung}
+ \Befehl{AtEveryListSplit}{<code>}\newline
+   Inserts \code{<code>} before each sub-heading in a splitted list.
+ \Befehl{AfterEveryListSplit}{<code>}\newline
+   Inserts \code{<code>} after each sub-heading in a splitted list.
+ \Befehl{EnotezCurrentSplitTitle}\newline
+   Holds the current sub-heading in a splitted list and may be used in
+   \cmd{AtEveryListSplit} and \cmd{AfterEveryListSplit}.
+\end{beschreibung}
+
+
 \enotez comes with an example document for a split list which you should
 find in the same folder as this documentation.
 \secidx*{Options}
@@ -589,7 +610,9 @@ If \paket{hyperref} is loaded and you are using the option \key{totoc} (see
 p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
 
 If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
-endnote marks are linked to the respective entries in the list.
+endnote marks are linked to the respective entries in the list\changedversion{0.7}.
+If you also set \enotez' option \key{backref} (see p~\pageref{key:backref}) the
+notes in the list are themselves linked to the marks in the text.
 \secidx*{\paket*{hyperref} Support}[hyperref Support]
 
 \AtNextEndnotesList{This is an example of a preamble to the list set with
