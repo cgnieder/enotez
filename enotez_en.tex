@@ -32,6 +32,7 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
+\PassOptionsToPackage{supstfm=libertinesups}{superiors}
 \documentclass[toc=bib,toc=index]{cnpkgdoc}
 \docsetup{
   pkg      = enotez ,
@@ -218,7 +219,7 @@
  suffix_3p "\\nohyperpage{\\,ff.}"
 \end{filecontents*}
 \indexsetup{othercode=\footnotesize}
-\makeindex[options={-s \jobname.ist},intoc,columns=3]
+\makeindex[options={-s \jobname.ist},intoc,columns=3,columnsep=1em]
 
 \usepackage{kantlipsum}
 \usepackage{etoolbox}
@@ -240,6 +241,8 @@
     \textcolor{black!75}{Changed in version~#1}}%
   \@esphack}
 \makeatother
+
+\robustify\code
 
 \begin{document}
 
@@ -534,11 +537,18 @@ You'll need to tell \enotez that you want to split the notes into groups.
  \Option{split}{section|chapter|false}\Default{false}
    Enable the automatic splitting.
  \Option{split-sectioning}{<csname>}\Default{}
+   \emph{This option is deprecated and may be dropped in future versions!}
    The command that is used to display the titles between the splits. It needs
    to be a command that takes one argument and should be entered without the
    leading backslash. If the option is not used \enotez will choose
    \code{subsection*} for \key*{split}{section} and \code{section*} for
    \key*{split}{chapter}.
+ \Option{split-heading}{<sectioning command including argument>}\newline
+   \sinceversion{0.3}The command that is used to display the titles between the
+   splits. It is entered with argument and the actual title is referred to with
+   \code{\#1}, \textit{e.g.}, \key{split-heading}{\cmd{subsection}*{\#1}}. If
+   the option is not used \enotez will choose \cmd{subsection}*{\#1} for
+   \key*{split}{section} and \cmd{section}*{\#1} for \key*{split}{chapter}.
  \Option{split-title}{<tokenlist>}\Default{Notes for <name> <ref>}
    The title that will be inserted between the splits. \code{<name>} is replaced
    by \code{section} for \key*{split}{section} and \code{chapter} for

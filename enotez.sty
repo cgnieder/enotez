@@ -31,9 +31,23 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/04/99}
+  {2013/05/01}
   {0.7}
   {Endnotes for LaTeX2e}
+
+% --------------------------------------------------------------------------
+% check expl3 version:
+\@ifpackagelater { expl3 } { 2012/11/21 }
+  { }
+  {
+    \PackageError { enotez } { Support~package~expl3~too~old }
+      {
+        You~need~to~update~your~installation~of~the~bundles~'l3kernel'~and~
+        'l3packages'.\MessageBreak
+        Loading~enotez~will~abort!
+      }
+    \tex_endinput:D
+  }
 
 % --------------------------------------------------------------------------
 % messages
@@ -43,6 +57,24 @@
     Endnotes~might~not~work~inside~captions.~You~might~try~to~use~the~caption~
     package~if~you~encounter~problems~but~that's~not~a~promise~that~things~
     will~work~then.
+  }
+
+
+\msg_new:nnnn { enotez } { deprecated }
+  { The~#1~`#2'~is~deprecated.~Use~`#3'~instead~\msg_line_context:. }
+  {
+    The~#1~`#2'~you~used~\msg_line_context: \c_space_tl is~deprecated~and~has~
+    been~replaced~by~`#3'.~Since~I~will~not~guarantee~that~#1~will~be~kept~
+    forever~I~encourage~you~to~switch.
+  }
+
+\cs_new:Npn \enotez_option_deprecated:nn #1#2
+  { \msg_warning:nnnnn { enotez } { deprecated } { option } { #1 } { #2 } }
+
+\cs_new:Npn \acro_command_deprecated:NN #1#2
+  {
+    \msg_warning:nnnnn { enotez } { deprecated } { command }
+      { \token_to_str:N #1 } { \token_to_str:N #2 }
   }
 
 % --------------------------------------------------------------------------
@@ -139,10 +171,11 @@
         { \bool_set_true:N \l__enotez_split_bool }
       \tl_set_eq:NN \l__enotez_split_tl \l_keys_choice_tl ,
     split            .generate_choices:n = { section , chapter , false } ,
-    split-sectioning .tl_set:N           = \l__enotez_splitted_list_sectioning_tl ,
-    % TODO: make this better:
+    split-sectioning .code:n             =
+      \enotez_option_deprecated:nn { split-sectioning } { split-heading }
+      \l__enotez_splitted_list_sectioning_tl ,
     split-heading    .code:n             =
-      \tl_set:Nn \l__enotez_splitted_list_sectioning_tl { \cs_to_str:N #1 } ,
+      \cs_set:Npn \enotezsplitlistheading ##1 { #1 } ,
     split-title      .tl_set:N           = \l__enotez_splitted_title_tl ,
     list-style       .tl_set:N           = \l__enotez_list_instance_tl ,
     list-preamble-skip .skip_set:N       = \l__enotez_list_preamble_skip ,
@@ -377,6 +410,9 @@
 \cs_if_exist:cTF { chapter }
   { \cs_new:Npn \enotezlistheading { \chapter* } }
   { \cs_new:Npn \enotezlistheading { \section* } }
+
+\cs_new:Npn \enotezsplitlistheading
+  { \use:c { \l__enotez_splitted_list_sectioning_tl } }
 
 \DeclareObjectType { enotez-list } { 1 }
 
@@ -615,7 +651,7 @@
                   { \subsection* }
                   { \section* }
               }
-              { \use:c { \l__enotez_splitted_list_sectioning_tl } }
+              { \enotezsplitlistheading }
             { \exp_not:V \EnotezCurrentSplitTitle }% this is the argument to the sectioning command
             \enotez_split_list_postamble:
           }
@@ -875,7 +911,7 @@
 2013/03/18 v0.5a - adapt to deprecated expl3 commands
 2013/04/06 v0.6  - \endnote sets \@currentlabel so endnotes can be referenced
                    with \label{} and \ref{}
-2013/04/?? v0.7  - new option `backref' adds links from the notes in the list
+2013/05/01 v0.7  - new option `backref' adds links from the notes in the list
                    back to the notes in the text (needs `hyperref' loaded)
                  - new: \AtEveryListSplit, \AfterEveryListSplit,
                    \EnotezCurrentSplitTitle
