@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/05/01}
-  {0.7}
+  {2013/08/03}
+  {0.7a}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -76,6 +76,12 @@
     \msg_warning:nnnnn { enotez } { deprecated } { command }
       { \token_to_str:N #1 } { \token_to_str:N #2 }
   }
+
+
+% --------------------------------------------------------------------------
+% variants of kernel functions
+\cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
+\cs_generate_variant:Nn \tl_if_eq:nnT  { xx }
 
 % --------------------------------------------------------------------------
 % variables:
@@ -142,6 +148,27 @@
 \cs_new_eq:NN \enotez_counter_format:n \int_to_arabic:n
 \cs_generate_variant:Nn \enotez_counter_format:n { V }
 
+\cs_new_eq:NN \__enotez_int_to_arabic:n \int_to_arabic:n
+\cs_new_eq:NN \__enotez_int_to_roman:n  \int_to_roman:n
+\cs_new_eq:NN \__enotez_int_to_Roman:n  \int_to_Roman:n
+\cs_new_eq:NN \__enotez_int_to_alph:n   \int_to_alph:n
+\cs_new_eq:NN \__enotez_int_to_Alph:n   \int_to_Alph:n
+\cs_new:Npn \__enotez_int_to_symbols:n #1
+  {
+    \int_to_symbols:nnn { #1 } { 9 }
+      {
+        { 1 } { \mode_if_math:TF { *                } { \textasteriskcentered } }
+        { 2 } { \mode_if_math:TF { \dagger          } { \textdagger } }
+        { 3 } { \mode_if_math:TF { \ddagger         } { \textdaggerdbl } }
+        { 4 } { \mode_if_math:TF { \mathsection     } { \textsection } }
+        { 5 } { \mode_if_math:TF { \mathparagraph   } { \textparagraph } }
+        { 6 } { \mode_if_math:TF { \|               } { \textbardbl } }
+        { 7 } { \mode_if_math:TF { **               } { \textasteriskcentered\textasteriskcentered } }
+        { 8 } { \mode_if_math:TF { \dagger\dagger   } { \textdagger\textdagger } }
+        { 9 } { \mode_if_math:TF { \ddagger\ddagger } { \textdaggerdbl\textdaggerdbl } }
+      }
+  }
+
 \keys_define:nn { enotez }
   {
     backref          .bool_set:N         = \l__enotez_hyperbackref_bool ,
@@ -150,9 +177,10 @@
     reset            .bool_set:N         = \l__enotez_reset_bool ,
     % TODO: add symbols and other possible formats, use cntformats?
     counter-format   .choice_code:n      =
-      \cs_set_eq:Nc \enotez_counter_format:n { int_to_ \l_keys_choice_tl :n } ,
+      \cs_set_eq:Nc \enotez_counter_format:n
+        { __enotez_int_to_ \l_keys_choice_tl :n } ,
     counter-format   .generate_choices:n =
-      { arabic , alph , Alph , roman , Roman } ,
+      { arabic , alph , Alph , roman , Roman , symbols } ,
     mark-format      .code:n             = \cs_set:Npn \enmarkstyle { #1 } ,
     mark-cs          .code:n             = \cs_set:Npn \enotezwritemark { #1 } ,
     totoc            .choice_code:n      =
@@ -173,7 +201,7 @@
     split            .generate_choices:n = { section , chapter , false } ,
     split-sectioning .code:n             =
       \enotez_option_deprecated:nn { split-sectioning } { split-heading }
-      \l__enotez_splitted_list_sectioning_tl ,
+      \cs_set:Npn \enotezsplitlistheading ##1 { #1 } ,
     split-heading    .code:n             =
       \cs_set:Npn \enotezsplitlistheading ##1 { #1 } ,
     split-title      .tl_set:N           = \l__enotez_splitted_title_tl ,
@@ -181,8 +209,6 @@
     list-preamble-skip .skip_set:N       = \l__enotez_list_preamble_skip ,
     list-postamble-skip .skip_set:N      = \l__enotez_list_postamble_skip
   }
-\cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
-\cs_generate_variant:Nn \tl_if_eq:nnT  { xx }
 
 % --------------------------------------------------------------------------
 % typeset the actual mark:
@@ -583,7 +609,7 @@
 % determine which note's next:
 \cs_new_protected:Npn \enotez_get_note:nn #1#2
   {
-    \IfBooleanTF { #1 }
+    \bool_if:nTF { #1 }
       {
         \prop_get:NnN \g__enotez_endnote_mark_prop { #2 } \l__enotez_endnote_mark_tl
         \prop_get:NnN \g__enotez_endnote_text_prop { #2 } \l__enotez_endnote_text_tl
@@ -594,15 +620,23 @@
         \bool_if:NTF \l__enotez_split_bool
           {
             \bool_set_true:N \l__enotez_print_note_bool
-            \prop_gpop:NnN \g__enotez_endnote_mark_prop { #2 } \l__enotez_endnote_mark_tl
-            \prop_gpop:NnN \g__enotez_endnote_text_prop { #2 } \l__enotez_endnote_text_tl
+            \prop_gpop:NnN \g__enotez_endnote_mark_prop
+              { #2 }
+              \l__enotez_endnote_mark_tl
+            \prop_gpop:NnN \g__enotez_endnote_text_prop
+              { #2 }
+              \l__enotez_endnote_text_tl
           }
           {
             \int_compare:nTF { \l__enotez_tmpa_tl = \g__enotez_list_printed_int }
               {
                 \bool_set_true:N \l__enotez_print_note_bool
-                \prop_gpop:NnN \g__enotez_endnote_mark_prop { #2 } \l__enotez_endnote_mark_tl
-                \prop_gpop:NnN \g__enotez_endnote_text_prop { #2 } \l__enotez_endnote_text_tl
+                \prop_gpop:NnN \g__enotez_endnote_mark_prop
+                  { #2 }
+                  \l__enotez_endnote_mark_tl
+                \prop_gpop:NnN \g__enotez_endnote_text_prop
+                  { #2 }
+                  \l__enotez_endnote_text_tl
                 \prop_gremove:Nn  \g__enotez_endnote_split_prop { #2 }
               }
               { \bool_set_false:N \l__enotez_print_note_bool }
@@ -671,13 +705,13 @@
 % internal printendnotes:
 \cs_new_protected:Npn \enotez_print_endnotes:nn #1#2
   {
-    \IfNoValueTF { #2 }
+    \tl_if_blank:nTF { #2 }
       { \UseInstance { enotez-list } { \l__enotez_list_instance_tl } }
       { \UseInstance { enotez-list } { #2 } }
     { #1 }
     \bool_if:NF \l__enotez_split_bool
       {
-        \bool_if:NTF \l__enotez_reset_bool
+        \bool_if:NT \l__enotez_reset_bool
           { \int_gzero:N \g__enotez_endnote_mark_int }
         \int_gincr:N \g__enotez_list_printed_int
       }
@@ -686,9 +720,17 @@
 % the user command:
 \NewDocumentCommand \printendnotes { so }
   {
-    \bool_if:NTF \l__enotez_split_bool
-      { \enotez_print_endnotes:nn { \BooleanFalse } { #2 } }
-      { \enotez_print_endnotes:nn { #1 } { #2 } }
+    \IfNoValueTF { #2 }
+      {
+        \bool_if:NTF \l__enotez_split_bool
+          { \enotez_print_endnotes:nn { \BooleanFalse } {  } }
+          { \enotez_print_endnotes:nn { #1 } {  } }
+      }
+      {
+        \bool_if:NTF \l__enotez_split_bool
+          { \enotez_print_endnotes:nn { \BooleanFalse } { #2 } }
+          { \enotez_print_endnotes:nn { #1 } { #2 } }
+      }
   }
 
 % --------------------------------------------------------------------------
@@ -916,6 +958,8 @@
                  - new: \AtEveryListSplit, \AfterEveryListSplit,
                    \EnotezCurrentSplitTitle
                  - new option: `list-heading'
+2013/08/03 v0.7a - corrected bug: `reset=true' now works as it should
+                 - added counter-format `symbols'
 
 % --------------------------------------------------------------------------
 % TODO:
