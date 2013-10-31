@@ -71,7 +71,7 @@
 \cs_new:Npn \enotez_option_deprecated:nn #1#2
   { \msg_warning:nnnnn { enotez } { deprecated } { option } { #1 } { #2 } }
 
-\cs_new:Npn \acro_command_deprecated:NN #1#2
+\cs_new:Npn \enotez_command_deprecated:NN #1#2
   {
     \msg_warning:nnnnn { enotez } { deprecated } { command }
       { \token_to_str:N #1 } { \token_to_str:N #2 }
@@ -960,6 +960,9 @@
                  - new option: `list-heading'
 2013/08/03 v0.7a - corrected bug: `reset=true' now works as it should
                  - added counter-format `symbols'
+2013/10/31 v0.7b - corrected bug: \acro_command_deprecated:NN should of course
+                   be \enotez_command_deprecated:NN
+
 
 % --------------------------------------------------------------------------
 % TODO:
