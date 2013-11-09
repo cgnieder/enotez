@@ -1,6 +1,6 @@
 % arara: pdflatex
-% !arara: biber
-% !arara: pdflatex
+% arara: biber
+% arara: pdflatex
 % arara: pdflatex
 % --------------------------------------------------------------------------
 % the ENOTEZ package
@@ -32,287 +32,142 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
-\PassOptionsToPackage{supstfm=libertinesups}{superiors}
-\documentclass[toc=bib,toc=index]{cnpkgdoc}
-\docsetup{
-  pkg      = enotez ,
-  language = en ,
-  code-box = {
-    backgroundcolor  = gray!3!white ,
-    skipbelow        = .6\baselineskip plus .5ex minus .5ex ,
-    skipabove        = .6\baselineskip plus .5ex minus .5ex ,
-    roundcorner      = 3pt ,
-  } ,
-  gobble   = 2 ,
-  subtitle = {Endnotes for \LaTeXe}
-}
+\documentclass[load-preamble+]{cnltx-doc}
+\usepackage[utf8]{inputenc}
+\usepackage{enotez}
 
-\addcmds{
-  @endnotemark,
-  @ifnextchar,
-  appendix,
-  chapter,
-  cmd,
-  cs,
-  DeclareInstance,
-  DeclareTemplateInterface,
-  DeclareTranslation,
-  endnote,
-  endnotemark,
-  endnotetext,
-  enmark,
-  enmarkstyle,
-  enotezwritemark,
-  kant,
-  phantomsection,
-  printendnotes,
-  setenotez,
-  splitendnotes,
-  textsuperscript,
-  theendnote
+\setcnltx{
+  package = enotez ,
+  info    = {Endnotes for \LaTeXe} ,
+  authors = Clemens Niederberger ,
+  email   = contact@mychemistry.eu ,
+  url     = https://bitbucket.org/cgnieder/enotez/ ,
+  pre-output = \setfnpct{dont-mess-around} ,
+  add-cmds = {
+    @endnotemark,
+    endnote ,
+    endnotemark ,
+    endnotetext ,
+    enmark ,
+    enmarkstyle ,
+    enotezwritemark ,
+    printendnotes ,
+    setenotez ,
+    splitendnotes ,
+    theendnote
+  } ,
+  add-silent-cmds = {
+    @currentlabel ,
+    appendix ,
+    cs ,
+    DeclareInstance ,
+    DeclareTemplateInterface ,
+    DeclareTranslation ,
+    kant
+  } ,
+  index-setup = {
+     othercode = \footnotesize ,
+     level = \addsec ,
+     noclearpage
+  } ,
+  makeindex-setup = {
+     columns = 3 ,
+     columnsep = 1em
+  }
 }
 \setenotez{mark-cs=\textsu,backref}
 \DeclareInstance{enotez-list}{addsec}{paragraph}{heading=\addsec{#1}}
 
-% Layout:
-\usepackage{libertinehologopatch}
-
-\cnpkgusecolorscheme{friendly}
-\renewcommand*\othersectionlevelsformat[3]{%
-  \textcolor{main}{#3\autodot}\enskip}
-\renewcommand*\partformat{%
-  \textcolor{main}{\partname~\thepart\autodot}}
-\usepackage{fnpct}
-\AdaptNote\endnote\multendnote
-\usepackage{embrac}[2012/06/29]
-\ChangeEmph{[}[,.02em]{]}[.055em,-.08em]
-\ChangeEmph{(}[-.01em,.04em]{)}[.04em,-.05em]
-
-\usepackage[backend=biber,style=alphabetic]{biblatex}
-\addbibresource{\jobname.bib}
-
-% rudimentary solution for a `maintainer' field:
-\DeclareFieldFormat{authortype}{\mkbibparens{#1}}
-% \DeclareFieldAlias{maintainer}{author}
-\DeclareBibliographyAlias{package}{misc}
-\renewbibmacro*{author}{%
-  \ifboolexpr{
-    test \ifuseauthor
-    and
-    not test {\ifnameundef{author}}
-  }
-    {\printnames{author}%
-     \iffieldundef{authortype}
-       {}
-       {\setunit{\space}%
-	\usebibmacro{authorstrg}}}
-    {}}
-
-\usepackage{filecontents}
-\begin{filecontents*}{\jobname.bib}
-@package{pkg:babel,
-  title   = {babel},
-  author  = {Johannes Braams},
-  date    = {2008-07-08},
-  version = {3.8m},
-  url     = {http://mirror.ctan.org/macros/latex/required/babel/base}
-}
-@package{pkg:endnotes,
-  title      = {endnotes},
-  author     = {Robin Fairbairns},
-  authortype = {current maintainer},
-  date       = {2003-01-15},
-  version    = {NA},
-  url        = {http://mirror.ctan.org/macros/latex/contrib/endnotes}
-}
-@package{pkg:translations,
-  title   = {translations},
-  author  = {Clemens Niederberger},
-  date    = {2013-08-01},
-  version = {1.1},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/translations}
-}
-@package{pkg:fnpct,
-  title   = {fnpct},
-  author  = {Clemens Niederberger},
-  date    = {2013-02-28},
-  version = {0.2j},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/fnpct}
-}
-@package{pkg:hyperref,
-  title   = {hyperref},
-  author  = {Heiko Oberdiek and Sebastian Rahtz},
-  date    = {2012-11-06},
-  version = {6.83m},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/hyperref}
-}
-@package{pkg:l3kernel,
-  title      = {l3kernel},
-  author     = {The \LaTeX3 Team},
-  date       = {2013-03-14},
-  version    = {4469},
-  url        = {http://mirror.ctan.org/macros/latex/contrib/l3kernel}
-}
-@package{pkg:l3packages,
-  title      = {l3packages},
-  author     = {The \LaTeX3 Team},
-  date       = {2013-03-12},
-  version    = {4467},
-  url        = {http://mirror.ctan.org/macros/latex/contrib/l3packages}
-}
-@package{cls:memoir,
-  title   = {memoir},
-  author  = {Peter Wilson and Lars Madsen},
-  date    = {2011-03-06},
-  version = {3.6j},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/memoir}
-}
-@package{pkg:polyglossia,
-  title   = {polyglossia},
-  author  = {Arthur Reutenauer and Fran\c cois Charette},
-  date    = {2012-04-29},
-  version = {1.2.1},
-  url     = {http://mirror.ctan.org/macros/xe­tex/la­tex/poly­glos­sia}
-}
-@package{pkg:scrlfile,
-  title   = {scrlfile},
-  author  = {Markus Kohm},
-  date    = {2012-06-15},
-  version = {3.12},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/koma-script}
-}
-@package{pkg:sepfootnotes,
-  title   = {sepfootnotes},
-  author  = {Eduardo C. Louren\c{c}o de Lima},
-  date    = {2013-01-17},
-  version = {0.2},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/sepfootnotes}
-}
-@package{pkg:xpatch,
-  title   = {xpatch},
-  author  = {Enrico Gregorio},
-  date    = {2012-10-02},
-  version = {0.3},
-  url     = {http://mirror.ctan.org/macros/latex/contrib/xpatch}
-}
-\end{filecontents*}
-
-\usepackage{imakeidx}
-\begin{filecontents*}{\jobname.ist}
- heading_prefix "{\\bfseries "
- heading_suffix "\\hfil}\\nopagebreak\n"
- headings_flag  1
- delim_0 "\\dotfill\\hyperpage{"
- delim_1 "\\dotfill\\hyperpage{"
- delim_2 "\\dotfill\\hyperpage{"
- delim_r "}\\textendash\\hyperpage{"
- delim_t "}"
- suffix_2p "\\nohyperpage{\\,f.}"
- suffix_3p "\\nohyperpage{\\,ff.}"
-\end{filecontents*}
-\indexsetup{othercode=\footnotesize}
-\makeindex[options={-s \jobname.ist},intoc,columns=3,columnsep=1em]
+\defbibheading{bibliography}{\addsec{References}}
 
 \usepackage{kantlipsum}
-\usepackage{etoolbox}
-\AtBeginEnvironment{beispiel}{\setfnpct{dont-mess-around}}
 \usepackage{enumitem}
-
-\newcommand*\cs[1]{\cmd*{#1}}
-
-\robustify\code
 
 \begin{document}
 
-\section{Licence and Requirements}\secidx{Licence}
-Permission is granted to copy, distribute and/or modify this software under
-the terms of the \LaTeX\ Project Public License, version 1.3 or later
-(\url{http://www.latex-project.org/lppl.txt}).  The package has the status
-``maintained.''
+\section{Licence and Requirements}
+\license
 
-\enotez needs and loads the following packages:
-\paket*{expl3}\footnote{\CTANurl{l3kernel}}~\cite{pkg:l3kernel},
-\paket*{xparse}\footnote{\CTANurl{l3packages}}, \paket*{xtemplate} and
-\paket*{l3keys2e}~\cite{pkg:l3packages}, \paket{xpatch}~\cite{pkg:xpatch},
-\paket*{scrlfile}\footnote{\CTANurl{koma-script}}~\cite{pkg:scrlfile} and
-\paket{translations}~\cite{pkg:translations}.
+\enotez\ needs and loads the following packages:
+\bnd{l3kernel}~\cite{bnd:l3kernel}, \pkg{xparse}, \pkg{xtemplate} and
+\pkg{l3keys2e} from the \bnd{l3packages} bundle~\cite{bnd:l3packages},
+\pkg{xpatch}~\cite{pkg:xpatch}, \pkg{scrlfile} from the \KOMAScript\
+bundle~\cite{bnd:koma-script} and \pkg{translations}~\cite{pkg:translations}.
 
-\secidx*{Licence}
-
-\section{Motivation}\secidx{Motivation}
-\enotez is a new implementation of endnotes for \LaTeXe\ since the
-\paket{endnotes} package~\cite{pkg:endnotes} has some deficiencies.  Nested
+\section{Motivation}
+\enotez\ is a new implementation of endnotes for \LaTeXe\ since the
+\pkg{endnotes} package~\cite{pkg:endnotes} has some deficiencies.  Nested
 endnotes, for example, are not supported, neither is
-\paket{hyperref}~\cite{pkg:hyperref}.  The \paket{sepfootnotes}
+\pkg{hyperref}~\cite{pkg:hyperref}.  The \pkg{sepfootnotes}
 package~\cite{pkg:sepfootnotes} also provides means for endnotes but actually
 has a different purpose: to separate input and usage both of footnotes and
 endnotes.  So it might not be the best solution in every case\footnote{You
   have to write the actual notes in the preamble or a separate file and
   reference them in the text.}.  It also does not allow nested endnotes.
 
-While \enotez worked in tests nicely with the
-\klasse{memoir}~\cite{cls:memoir} class please keep in mind that
-\klasse{memoir} provides its own endnote mechanism.
+While \enotez\ worked in tests nicely with the
+\cls{memoir}~\cite{cls:memoir} class please keep in mind that
+\cls{memoir} provides its own endnote mechanism.
 
-\enotez enables nested endnotes properly and has another mechanism of
+\enotez\ enables nested endnotes properly and has another mechanism of
 customizing the list of endnotes which is easily extendable.  One of the main
-features of \enotez is a split list of endnotes in which the notes are
+features of \enotez\ is a split list of endnotes in which the notes are
 automatically separated by the sections or chapters they were set in, see
 section~\ref{sec:split} for more information.
 
-As an aside: \enotez is nicely compatible with the \paket{fnpct}
-package~\cite{pkg:fnpct}.  Version~0.2j or newer of \paket{fnpct}
-automatically detects \enotez and adapts the \cmd{endnote} command.
-\secidx*{Motivation}
+As an aside: \enotez\ is nicely compatible with the \pkg{fnpct}
+package~\cite{pkg:fnpct}.  Version~0.2j or newer of \pkg{fnpct} automatically
+detects \enotez\ and adapts the \cs{endnote} command.
 
-\section{Usage}\secidx{Usage}
+
+\section{Usage}
 \subsection{Placing the Notes}
-The usage is simple: use \cmd{endnote} in the text where you want to place the
+The usage is simple: use \cs{endnote} in the text where you want to place the
 note mark.
-\begin{beschreibung}
-  \Befehl{endnote}[<mark>]{<text>}\newline
+\begin{commands}
+  \command{endnote}[\oarg{mark}\marg{text}]
     Add an endnote in the text.
-\end{beschreibung}
-\begin{beispiel}
+\end{commands}
+\begin{example}
   This is some text.\endnote{With an endnote.}
-\end{beispiel}
+\end{example}
 There's not really much more to it.  It is possible to add a custom mark by
 using the optional argument but that shouldn't be needed too often.
-\cmd{endnote} works fine inside tables, minipages, floats and
+\cs{endnote} works fine inside tables, minipages, floats and
 captions\footnote{This has been tested with the standard classes,
-  \klasse{memoir}, and the \klasse{KOMA-Script} classes, with and without the
-  \paket*{caption} package.  If you're using another package that redefines
-  \cmd*{caption} or are using another class it might not work.  Before you
+  \cls{memoir}, and the \cls{KOMA-Script} classes, with and without the
+  \pkg*{caption} package.  If you're using another package that redefines
+  \cs*{caption} or are using another class it might not work.  Before you
   place a note in a caption you should re-think the idea anyway.}.  Endnotes
 can also be nested.
 
 Since this functionality seemed making a pair
-\cmd{endnotemark}/\cmd{endnotetext} superfluous they are \emph{not} defined by
+\cs{endnotemark}/\cs{endnotetext} superfluous they are \emph{not} defined by
 \enotez.
-\begin{beispiel}
+\begin{example}
   This is some text.\endnote{With another endnote.\endnote{This is a
       nested\endnote{And another level deeper\ldots} endnote!}}
   % uses package `kantlipsum' to produce dummy text:
   Of course you can have several paragraphs\endnote{\kant[1-3]} in an endnote.
-\end{beispiel}
+\end{example}
 
 The marks of the endnotes in the running text are printed through the command
-\cmd{enotezwritemark} which defaults to \cmd{textsuperscript}.  Its argument
-contains the current mark which is preceded by \cmd{enmarkstyle}.  Both of
+\cs{enotezwritemark} which defaults to \cs*{textsuperscript}.  Its argument
+contains the current mark which is preceded by \cs{enmarkstyle}.  Both of
 these commands can be redefined of course to adapt to custom settings.  This
 can also be done using options, see section~\ref{sec:options}.  The mark of
-the endnote that has been set last is stored in \cmd{theendnote} and in
-\cmd{@currentlabel}.\sinceversion{0.6}
+the endnote that has been set last is stored in \cs{theendnote} and in
+\verbcode+\@currentlabel+.\sinceversion{0.6}
 
 This could be used to define a command which writes a mark:
-\begin{beispiel}
+\begin{example}
   % we cannot use \newcommand -- the command starts with \end...
   \makeatletter
   \def\endnotemark{\@ifnextchar[{\@endnotemark}{\@endnotemark[\theendnote]}}
   \def\@endnotemark[#1]{\enotezwritemark{\enmarkstyle#1}}
   \makeatother
   Text\endnotemark
-\end{beispiel}
+\end{example}
 Please note that this definition \emph{does not} step the endnote counter but
 either refers to the last number (no optional argument) or uses the one
 provided in the optional argument.
@@ -323,121 +178,125 @@ provided in the optional argument.
 \makeatother
 
 Endnotes can also be labelled and later be referred to:
-\begin{beispiel}
+\begin{example}
   The next endnote\endnote{This endnote gets a label.}\label{en:test} has
   the number~\ref{en:test}.  We can use this with the previous definition
   of \cs{endnotemark}\endnotemark[\ref{en:test}].
-\end{beispiel}
+\end{example}
 
 \subsection{Printing the Notes}
-The notes are printed by using the command \cmd{printendnotes}.
-\begin{beschreibung}
-  \Befehl{printendnotes}*[<style>]\newline
-    Print the list of endnotes. \code{<style>} is one of the instances
-    explained in section~\ref{ssec:customizing_the_list}.
-\end{beschreibung}
+The notes are printed by using the command \cs{printendnotes}.
+\begin{commands}
+  \command{printendnotes}[\sarg\oarg{style}]
+    Print the list of endnotes. \meta{style} is one of the instances
+    explained in section~\ref{sec:customizing_the_list}.
+\end{commands}
 If used without argument it prints all notes set so far with
-\cmd{endnote}. The current list will then be cleared.  All endnotes set after
-it are stored again for the next usage of \cmd{printendnotes}.  The starred
+\cs{endnote}. The current list will then be cleared.  All endnotes set after
+it are stored again for the next usage of \cs{printendnotes}.  The starred
 version will print \emph{all} endnotes but shouldn't be used more than once if
 you have nested endnotes.
 
 It may take several compilation runs until all notes are printed correctly.
 In a first run they are written to the \code{aux} file.  In the second run
-they are available to \cmd{printendnotes}.  If you have nested endnotes they
+they are available to \cs{printendnotes}.  If you have nested endnotes they
 will be written to the \code{aux} file the first time they're printed with
-\cmd{printendnotes} which means you might have to compile your file once more.
+\cs{printendnotes} which means you might have to compile your file once more.
 If you change any of the endnotes or add another one you again will need at
-least two runs, maybe more.  \enotez tries to warn you in these cases by
-invoking the warning \achtung{\code{Endnotes may have changed.  Rerun to get
-    them right.}}  but may not catch all cases.
+least two runs, maybe more.  \enotez\ tries to warn you in these cases by
+invoking the warning
+\begin{flushleft}
+  \ttfamily
+  Endnotes may have changed.  Rerun to get them right.
+\end{flushleft}
+but may not catch all cases.
 
-\enotez provides two commands that allow to set some kinds of preamble and
+\enotez\ provides two commands that allow to set some kinds of preamble and
 postamble to a list, either to every list or only to the next one:
-\begin{beschreibung}
-  \Befehl{AtEveryEndnotesList}{<text>}\newline\sinceversion{0.5}%
-    inserts \code{<text>} between heading and the actual notes every time
-    \cmd{printendnotes} is used.
-  \Befehl{AtNextEndnotesList}{<text>}\newline\sinceversion{0.5}%
-    inserts \code{<text>} between heading and the actual notes the next time
-    \cmd{printendnotes} is used.  This overwrites a possible preamble set with
-    \cmd{AtEveryEndnotesList} for this instance of \cmd{printendnotes}.
-  \Befehl{AfterEveryEndnotesList}{<text>}\newline\sinceversion{0.5}%
-    inserts \code{<text>} after the notes list every time \cmd{printendnotes}
-    is used.
-  \Befehl{AfterNextEndnotesList}{<text>}\newline\sinceversion{0.5}%
-    inserts \code{<text>} after the notes list the next time
-    \cmd{printendnotes} is used.  This overwrites a possible postamble set
-    with \cmd{AfterEveryEndnotesList} for this instance of
-    \cmd{printendnotes}.
-\end{beschreibung}
-If something is inserted with one of these commands the inserted \code{<text>}
-will be followed by a \cmd{par} and a vertical skip for the preamble.  The
-postambles follow a \cmd{par} and a vertical skip.  The skips can be set using
+\begin{commands}
+  \command{AtEveryEndnotesList}[\marg{text}]
+    \sinceversion{0.5}inserts \meta{text} between heading and the actual notes
+    every time \cs{printendnotes} is used.
+  \command{AtNextEndnotesList}[\marg{text}]
+    \sinceversion{0.5} inserts \meta{text} between heading and the actual
+    notes the next time \cs{printendnotes} is used.  This overwrites a
+    possible preamble set with \cs{AtEveryEndnotesList} for this instance of
+    \cs{printendnotes}.
+  \command{AfterEveryEndnotesList}[\marg{text}]
+    \sinceversion{0.5} inserts \meta{text} after the notes list every time
+    \cs{printendnotes} is used.
+  \command{AfterNextEndnotesList}[\marg{text}]
+    \sinceversion{0.5} inserts \meta{text} after the notes list the next time
+    \cs{printendnotes} is used.  This overwrites a possible postamble set with
+    \cs{AfterEveryEndnotesList} for this instance of \cs{printendnotes}.
+\end{commands}
+If something is inserted with one of these commands the inserted \meta{text}
+will be followed by a \cs*{par} and a vertical skip for the preamble.  The
+postambles follow a \cs*{par} and a vertical skip.  The skips can be set using
 an option, see section~\ref{sec:options}.
 
-\secidx*{Usage}
-
-\section{Options}\label{sec:options}\secidx{Options}
+\section{Options}\label{sec:options}
 \subsection{Package Options}
-\enotez has a few package options which should be pretty self-explanatory.
+\enotez\ has a few package options which should be pretty self-explanatory.
 They can be set either as package options with
-\verb=\usepackage[<options>]{enotez}= or with the setup command.
-\begin{beschreibung}
-  \Befehl{setenotez}{<options>}\newline
+\cs*{usepackage}\oarg{options}\Marg{enotez} or with the setup command.
+\begin{commands}
+  \command{setenotez}[\marg{options}]
     Setup command for setting \enotez' options.
-  \Option{list-name}{<list name>}\Default{Notes}
+\end{commands}
+\begin{options}
+  \keyval{list-name}{list name}\Default{Notes}
     The name of the notes list. This name is used for the heading of the
     list.
-  \Option{reset}{\default{true}|false}\Default{false}
+  \keybool{reset}\Default{false}
     If set to \code{true} the notes numbers will start from 1 again after
-    \cmd{printendnotes} has been invoked.
-  \Option{counter-format}{arabic|alph|Alph|roman|Roman|symbols}\Default{arabic}
+    \cs{printendnotes} has been invoked.
+  \keychoice{counter-format}{arabic,alph,Alph,roman,Roman,symbols}\Default{arabic}
     Change the format of the endnote counter.  Please be aware that there are
     only 26 alphabetic counter symbols (options \code{alph} and \code{Alph}
     and \emph{only 9} symbols (option \code{symbols}).
-  \Option{mark-format}{<code>}\Default{}
-    Redefine \cmd{enmarkstyle} to execute \code{<code>}.  This command is
-    placed directly before the endnote mark in the text.
-  \Option{mark-cs}{<command>}\Default{\cmd{textsuperscript}}
-    Lets \cmd{enotezwritemark} to be equal to \code{<command>}.  This command
+  \keyval{mark-format}{code}\Default
+    Redefine \cs{enmarkstyle} to execute \meta{code}.  This command is placed
+    directly before the endnote mark in the text.
+  \keyval{mark-cs}{command}\Default{\cs*{textsuperscript}}
+    Lets \cs{enotezwritemark} to be equal to \meta{command}.  This command
     is used to typeset the endnote marks in the text and should take one
     argument.
-  \Option{backref}{\default{true}|false}\Default{false}
-    \sinceversion{0.7}If set to \code{true} and \paket{hyperref} has been
+  \keybool{backref}\Default{false}\label{key:backref}
+    \sinceversion{0.7}If set to \code{true} and \pkg{hyperref} has been
     loaded backlinks from the notes in the list to the marks in the text are
     added.
-  \Option{totoc}{section|chapter|false}\Default{false}
+  \keychoice{totoc}{section,chapter,false}\Default{false}\label{key:totoc}
     Add an entry to the table of contents.
-  \Option{list-heading}{<sectioning command including argument>}\newline
-    You can use this option to manually set the list heading command,
-    \textit{e.g.}, \key{list-heading}{\cmd{chapter}{\#1}} for a numbered
-    heading.  The default depends upon if the class you're using provides
-    \cmd{chapter} or not.  It either uses \cmd{chapter}* or \cmd{section}*.
-    You can see that you have to refer to the actual heading with \code{\#1}.
-  \Option{list-style}{<style>}\Default{plain}
-    Sets the default list style, see section \ref{ssec:customizing_the_list}
+  \keyval{list-heading}{sectioning command including argument}
+    You can use this option to manually set the list heading command, \eg,
+    \keyis{list-heading}{\cs{chapter}\Marg{\#1}} for a numbered heading.  The
+    default depends upon if the class you're using provides \cs*{chapter} or
+    not.  It either uses \cs*{chapter}\sarg\ or \cs*{section}\sarg. You can
+    see that you have to refer to the actual heading with \code{\#1}.
+  \keyval{list-style}{style}\Default{plain}
+    Sets the default list style, see section~\ref{sec:customizing_the_list}
     for details.
-  \Option{list-preamble-skip}{<skip>}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
-    Sets the vertical skip (a rubber length) that is inserted if a list
-    preamble is inserted by using either \cmd{AtNextEndnotesList} or
-    \cmd{AtEveryEndnotesList}.  It's default is set equal to
-    \cmd{medskipamount}.
-  \Option{list-postamble-skip}{<skip>}\Default{\cmd{medskipamount}}\sinceversion{0.5}%
-    Sets the vertical skip (a rubber length) that is inserted if a list
-    postamble is inserted by using either \cmd{AfterNextEndnotesList} or
-    \cmd{AfterEveryEndnotesList}.  It's default is set equal to
-    \cmd{medskipamount}.
-\end{beschreibung}
+  \keyval{list-preamble-skip}{skip}\Default{\cs*{medskipamount}}
+    \sinceversion{0.5}Sets the vertical skip (a rubber length) that is
+    inserted if a list preamble is inserted by using either
+    \cs{AtNextEndnotesList} or \cs{AtEveryEndnotesList}.  It's default is set
+    equal to \cs*{medskipamount}.
+  \keyval{list-postamble-skip}{skip}\Default{\cs*{medskipamount}}
+    \sinceversion{0.5}Sets the vertical skip (a rubber length) that is
+    inserted if a list postamble is inserted by using either
+    \cs{AfterNextEndnotesList} or \cs{AfterEveryEndnotesList}.  It's default
+    is set equal to \cs*{medskipamount}.
+\end{options}
 
-\subsection{Customizing the List}\label{ssec:customizing_the_list}
-The list is typeset with \paket{xtemplate}'s possibilities.  \enotez declares
+\subsection{Customizing the List}\label{sec:customizing_the_list}
+The list is typeset with \pkg{xtemplate}'s possibilities.  \enotez\ declares
 the object \code{enotez-list} and two templates for it, the template
 \code{paragraph} and the template \code{list}.
 
 \subsubsection{The \code{paragraph} Template}
 The \code{paragraph} template's interface is defined as follows:
-\begin{beispiel}[code only]
+\begin{sourcecode}
   \DeclareTemplateInterface{enotez-list}{paragraph}{1}
     {
       % parameter   : type       = default
@@ -447,25 +306,25 @@ The \code{paragraph} template's interface is defined as follows:
       number-format : tokenlist  = \normalfont     ,
       notes-sep     : length     = .5\baselineskip ,
     }
-\end{beispiel}
+\end{sourcecode}
 The parameters functions are these:
 \begin{description}[style=nextline]
   \item[\code{heading}] The command with which the heading is typeset.
   \item[\code{format}] The format of the whole list.
   \item[\code{number}] The command that is used to typeset the numbers of the
-    notes.  The command \cmd{enmark} is explained soon.
+    notes.  The command \cs{enmark} is explained soon.
   \item[\code{numbers-format}] The format of the numbers.
   \item[\code{notes-sep}] Additional space between the notes.
 \end{description}
 
-\enotez uses this template to define the instance \code{plain}:
-\begin{beispiel}[code only]
+\enotez\ uses this template to define the instance \code{plain}:
+\begin{sourcecode}
   \DeclareInstance{enotez-list}{plain}{paragraph}{}
-\end{beispiel}
+\end{sourcecode}
 This is the default style of the list.
 
 You can easily define your own instances, though:
-\begin{beispiel}[code only]
+\begin{sourcecode}
   \DeclareInstance{enotez-list}{custom}{paragraph}
     {
       heading   = \chapter*{#1}        ,
@@ -473,24 +332,24 @@ You can easily define your own instances, though:
       format    = \normalfont          ,
       number    = \textsuperscript{#1}
     }
-\end{beispiel}
+\end{sourcecode}
 This would use a chapter heading for the title, separate the notes with
-\verb=\baselineskip= and typeset them with \verb=\normalfont=.  The numbers
-would be typeset with \verb=\textsuperscript=.  You could now use it like
-this:
-\begin{beispiel}[code only]
+\cs*{baselineskip} and typeset them with \cs*{normalfont}.  The numbers would
+be typeset with \cs*{textsuperscript}.  You could now use it like this:
+\begin{sourcecode}
   \printendnotes[custom]
-\end{beispiel}
+\end{sourcecode}
 
-If you wanted superscripted numbers, you could also redefine \cmd{enmark}. 
-\begin{beschreibung}
-  \Befehl{enmark}\newline
-    is defined like this: \verb=\newcommand*\enmark[1]{#1.}=
-\end{beschreibung}
+If you wanted superscripted numbers, you could also redefine \cs{enmark}. 
+\begin{commands}
+  \command{enmark}
+    this command is initially defined like this:
+    \verbcode=\newcommand*\enmark[1]{#1.}=
+\end{commands}
 
 \subsubsection{The \code{list} Template}
 The \code{list} template's interface is defined as follows:
-\begin{beispiel}[code only]
+\begin{sourcecode}
   \DeclareTemplateInterface{enotez-list}{list}{1}
     {
       % parameter   : type       = default
@@ -500,70 +359,71 @@ The \code{list} template's interface is defined as follows:
       number-format : tokenlist  = \normalfont   ,
       list-type     : tokenlist  = description   ,
     }
-\end{beispiel}
+\end{sourcecode}
 This template uses a list to typeset the notes.  As you can see the default
 list is a \code{description} list.
 
-\enotez defines two instances of this template:
-\begin{beispiel}[code only]
+\enotez\ defines two instances of this template:
+\begin{sourcecode}
   \DeclareInstance{enotez-list}{description}{list}{}
   \DeclareInstance{enotez-list}{itemize}{list}{list-type = itemize}
-\end{beispiel}
-They're available through \cmd{printendnotes}[description] and
-\cmd{printendnotes}[itemize], respectively.
+\end{sourcecode}
+They're available through \cs{printendnotes}\Oarg{description} and
+\cs{printendnotes}\Oarg{itemize}, respectively.
 
 Again you can define your own instances using whatever list you want, possibly
-one defined with the power of \paket{enumitem}.
+one defined with the power of \pkg{enumitem}.
 
 \section{Collect Notes Section-wise and Print List Stepwise}\label{sec:split}
 \emph{This feature is experimental and surely has some limitations.  Please
   let me know if something doesn't work as expected}.
 
-Not to be misunderstood: you can use \cmd{printendnotes} as often as you like,
+Not to be misunderstood: you can use \cs{printendnotes} as often as you like,
 possibly after each section.  That is \emph{not} what is meant here.  Let's
 suppose you are writing a book and have many endnotes in many chapters.  It
 would be nice if the list of endnotes at the end of the book could be split
 into parts for each chapter.  This section describes how you can achieve that
 with \enotez.
 
-First of all \enotez will rely on the fact that you use \cmd{printendnotes}
+First of all \enotez\ will rely on the fact that you use \cs{printendnotes}
 only \emph{once}!  If you call it more times nobody knows what will
 happen\ldots
 
-You'll need to tell \enotez that you want to split the notes into groups.
-\begin{beschreibung}
-  \Option{split}{section|chapter|false}\Default{false}
+You'll need to tell \enotez\ that you want to split the notes into groups.
+\begin{options}
+  \keychoice{split}{section,chapter,false}\Default{false}
     Enable the automatic splitting.
-  \Option{split-sectioning}{<csname>}\Default{}
+  \keyval{split-sectioning}{csname}\Default
     \emph{This option is deprecated and may be dropped in future versions!}
     The command that is used to display the titles between the splits.  It
     needs to be a command that takes one argument and should be entered
-    without the leading backslash.  If the option is not used \enotez will
-    choose \code{subsection*} for \key*{split}{section} and \code{section*}
-    for \key*{split}{chapter}.
-  \Option{split-heading}{<sectioning command including argument>}\newline
+    without the leading backslash.  If the option is not used \enotez\ will
+    choose \code{subsection*} for \keyis{split}{section} and \code{section*}
+    for \keyis{split}{chapter}.
+  \keyval{split-heading}{sectioning command including argument}
     \sinceversion{0.3}The command that is used to display the titles between
     the splits.  It is entered with argument and the actual title is referred
-    to with \code{\#1}, \textit{e.g.},
-    \key{split-heading}{\cmd{subsection}*{\#1}}.  If the option is not used
-    \enotez will choose \cmd{subsection}*{\#1} for \key*{split}{section} and
-    \cmd{section}*{\#1} for \key*{split}{chapter}. 
-  \Option{split-title}{<tokenlist>}\Default{Notes for <name> <ref>}
+    to with \code{\#1}, \eg,
+    \keyis{split-heading}{\cs*{subsection}\sarg\Marg{\#1}}.  If the option is
+    not used \enotez\ will choose \cs*{subsection}\sarg\Marg{\#1} for
+    \keyis{split}{section} and \cs*{section}\sarg\Marg{\#1} for
+    \keyis{split}{chapter}.
+  \keyval{split-title}{tokenlist}\Default{Notes for <name> <ref>}
     The title that will be inserted between the splits.  \code{<name>} is
-    replaced by \code{section} for \key*{split}{section} and \code{chapter}
-    for \key*{split}{chapter}. \code{<ref>} is replaced by the corresponding
-    \cmd*{thesection} or \cmd*{thechapter}.
-\end{beschreibung}
-Set the \key{split} option:
-\begin{beispiel}[code only]
+    replaced by \code{section} for \keyis{split}{section} and \code{chapter}
+    for \keyis{split}{chapter}. \code{<ref>} is replaced by the corresponding
+    \cs*{thesection} or \cs*{thechapter}.
+\end{options}
+Set the \option{split} option:
+\begin{sourcecode}
   \setenotez{split=section}
-\end{beispiel}
+\end{sourcecode}
 Well -- that's it, basically.  You'll have to be careful, though: if you're
 having nested endnotes the nested ones appear first in the ``Notes'' section
 (or chapter, respectively).  In this case you should have a numbered section
 title for the notes, presumably in the appendix.  You'll need to create a new
 list style:
-\begin{beispiel}[code only]
+\begin{sourcecode}
   % preamble:
   \usepackage{enotez}
   \DeclareInstance{enotez-list}{section}{paragraph}{heading=\section{#1}}
@@ -571,74 +431,62 @@ list style:
   % document:
   \appendix
   \printendnotes
-\end{beispiel}
+\end{sourcecode}
 
-Please beware that the option \key{reset} also impacts here: the numbing will
-be reset for each section or chapter, depending on the choice you made for
-\key{split}.
+Please beware that the option \option{reset} also impacts here: the numbing
+will be reset for each section or chapter, depending on the choice you made
+for \option{split}.
 
-\sinceversion{0.7}There are two -- or three, actually -- additional commands:
-\begin{beschreibung}
-  \Befehl{AtEveryListSplit}{<code>}\newline
-    Inserts \code{<code>} before each sub-heading in a splitted list.
-  \Befehl{AfterEveryListSplit}{<code>}\newline
-    Inserts \code{<code>} after each sub-heading in a splitted list.
-  \Befehl{EnotezCurrentSplitTitle}\newline
+There are two\sinceversion{0.7} -- or three, actually -- additional commands:
+\begin{commands}
+  \command{AtEveryListSplit}[\marg{code}]
+    Inserts \meta{code} before each sub-heading in a splitted list.
+  \command{AfterEveryListSplit}[\marg{code}]
+    Inserts \meta{code} after each sub-heading in a splitted list.
+  \command{EnotezCurrentSplitTitle}
     Holds the current sub-heading in a splitted list and may be used in
-    \cmd{AtEveryListSplit} and \cmd{AfterEveryListSplit}.
-\end{beschreibung}
+    \cs{AtEveryListSplit} and \cs{AfterEveryListSplit}.
+\end{commands}
 
-\enotez comes with an example document for a split list which you should find
+\enotez\ comes with an example document for a split list which you should find
 in the same folder as this documentation.
 
-\secidx*{Options}
-
-\section{Language Support}\secidx{Language Support}
-\enotez uses the \paket{translations} package~\cite{pkg:translations} to
+\section{Language Support}
+\enotez\ uses the \pkg{translations} package~\cite{pkg:translations} to
 translate language dependent strings.  The advantage of this is that language
-settings with \paket{babel}~\cite{pkg:babel} or
-\paket{polyglossia}~\cite{pkg:polyglossia} are detected automatically.
-However, the available translations are somewhat limited due to my limited
-language knowledge.  If you find missing or wrong translations you can try to
-add or correct them by adding the corresponding versions of the following
-lines to your preamble:
-\begin{beispiel}[code only]
+settings with \pkg{babel}~\cite{pkg:babel} or
+\pkg{polyglossia}~\cite{pkg:polyglossia} are detected automatically.  However,
+the available translations are somewhat limited due to my limited language
+knowledge.  If you find missing or wrong translations you can try to add or
+correct them by adding the corresponding versions of the following lines to
+your preamble:
+\begin{sourcecode}
   \DeclareTranslation{English}{enotez-title}{Notes}
   % ``<name> <ref>'' is a placeholder for e.g. ``section 1'':
   \DeclareTranslation{English}{enotez-splitted-title}{Notes for <name> <ref>}
   \DeclareTranslation{English}{enotez-section}{section}
   \DeclareTranslation{English}{enotez-chapter}{chapter}
-\end{beispiel}
+\end{sourcecode}
 If you like you can also drop me an email at
 \href{mailto:contact@mychemistry.eu}{contact@mychemistry.eu} and I'll add the
 correct translations to \enotez.
 
-\secidx*{Language Support}
+\section{hyperref Support}
+If \pkg{hyperref} is loaded and you are using the option \key{totoc} (see
+p~\pageref{key:totoc}) the list title is linked via a \cs*{phantomsection}.
 
-\section{hyperref Support}\secidx{\paket*{hyperref} Support}[hyperref Support]
-If \paket{hyperref} is loaded and you are using the option \key{totoc} (see
-p~\pageref{key:totoc}) the list title is linked via a \verb=\phantomsection=.
-
-If \paket{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
+If \pkg{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the
-list\changedversion{0.7}.  If you also set \enotez' option \key{backref} (see
-p~\pageref{key:backref}) the notes in the list are themselves linked to the
-marks in the text.
-
-\secidx*{\paket*{hyperref} Support}[hyperref Support]
+list\changedversion{0.7}.  If you also set \enotez' option \option{backref}
+(see p~\pageref{key:backref}) the notes in the list are themselves linked to
+the marks in the text.
 
 \AtNextEndnotesList{This is an example of a preamble to the list set with
-\cmd{AtNextEndnotesList}.}
+\cs{AtNextEndnotesList}.}
 \AfterEveryEndnotesList{\noindent This is an example of a postamble to the
-  list set with \cmd{AfterEveryEndnotesList}.  Note that it would have started
-  with a paragraph indent which was prevented here by using \cmd{noindent}.}
+  list set with \cs{AfterEveryEndnotesList}.  Note that it would have started
+  with a paragraph indent which was prevented here by using \cs*{noindent}.}
 \printendnotes[addsec]
 
-\printbibliography
-
-\indexprologue{\noindent Section titles are indicated \textbf{bold}, packages
-  \textsf{sans serif}, commands \code{\textbackslash\textcolor{code}{brown}}
-  and options \textcolor{key}{\code{yellow}}.\par\bigskip}
-
-\printindex
 \end{document}
+
