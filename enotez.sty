@@ -8,7 +8,7 @@
 % Web:    https://bitbucket.org/cgnieder/enotez/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2011-2013 Clemens Niederberger
+% Copyright 2012-2014 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2013/10/31}
-  {0.7b}
+  {2014/02/04}
+  {0.7c}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -229,7 +229,13 @@
   }
 
 % the internal endnote:
-\cs_new:Npn \enotez_endnote:nn #1#2
+\cs_new_protected:Npn \enotez_endnote:nn #1#2
+  {
+    \enotez_endnote_mark:n  { #1 }
+    \enotez_endnote_text:nn { #1 } { #2 }
+  }
+
+\cs_new_protected:Npn \enotez_endnote_mark:n #1
   {
     \int_gincr:N \g__enotez_endnote_id_int
     \quark_if_no_value:nTF { #1 }
@@ -241,9 +247,25 @@
         \enotez_write_mark:nn
           { \int_use:N \g__enotez_endnote_id_int }
           { \enotez_counter_format:V \g__enotez_endnote_mark_int }
-        \tl_set:Nn \l__enotez_tmpa_tl { chapter }
+      }
+      {
+        \cs_gset:cpx { @currentlabel } { #1 }
+        \cs_gset_eq:NN \theendnote \@currentlabel
+        \enotez_write_mark:nn { \int_use:N \g__enotez_endnote_id_int } { #1 }
+      }
+  }
+
+\cs_new_protected:Npn \enotez_endnote_text:nn #1#2
+  {
+    \tl_set:Nn \l__enotez_tmpa_tl { chapter }
+    \quark_if_no_value:nTF { #1 }
+      {
         \bool_if:nTF
-          { \l__enotez_split_bool && \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl }
+          {
+            \l__enotez_split_bool
+            &&
+            \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl
+          }
           {
             \enotez_save_note:xxxxnn
               { \int_use:N \g__enotez_endnote_id_int }
@@ -264,12 +286,12 @@
           }
       }
       {
-        \cs_gset:cpx { @currentlabel } { #1 }
-        \cs_gset_eq:NN \theendnote \@currentlabel
-        \enotez_write_mark:nn { \int_use:N \g__enotez_endnote_id_int } { #1 }
-        \tl_set:Nn \l__enotez_tmpa_tl { chapter }
         \bool_if:nTF
-          { \l__enotez_split_bool && \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl }
+          {
+            \l__enotez_split_bool
+            &&
+            \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl
+          }
           {
             \enotez_save_note:xnxxnn
               { \int_use:N \g__enotez_endnote_id_int }
@@ -431,6 +453,26 @@
 \cs_new:Npn \enotez_endnote_aux:w [#1]#2
   { \enotez_endnote:nn { #1 } { #2 } }
 
+% \cs_new_protected:Npn \endnotemark
+%   {
+%     \peek_meaning_ignore_spaces:NTF [
+%       { \enotez_endnote_mark_aux:w }
+%       { \enotez_endnote_mark:n { \q_no_value } }
+%   }
+
+% \cs_new:Npn \enotez_endnote_mark_aux:w [#1]
+%   { \enotez_endnote_mark:n { #1 } }
+
+% \cs_new_protected:Npn \endnotetext
+%   {
+%     \peek_meaning_ignore_spaces:NTF [
+%       { \enotez_endnote_text_aux:w }
+%       { \enotez_endnote_text:nn { \q_no_value } }
+%   }
+
+% \cs_new:Npn \enotez_endnote_text_aux:w [#1]#2
+%   { \enotez_endnote_text:nn { #1 } { #2 } }
+
 % --------------------------------------------------------------------------
 % the list of notes
 \cs_if_exist:cTF { chapter }
@@ -491,6 +533,7 @@
                           \tl_use:N \c_space_tl
                         }
                       \tl_use:N \l__enotez_endnote_text_tl
+                      \par
                       \group_end:
                     }
                 }
@@ -962,6 +1005,8 @@
                  - added counter-format `symbols'
 2013/10/31 v0.7b - corrected bug: \acro_command_deprecated:NN should of course
                    be \enotez_command_deprecated:NN
+2014/02/04 v0.7c - added a missing \par to the `paragraph' template for the
+                   list
 
 
 % --------------------------------------------------------------------------
