@@ -1,5 +1,5 @@
-% arara: pdflatex
-% arara: biber
+% !arara: pdflatex
+% !arara: biber
 % arara: pdflatex
 % arara: pdflatex
 % --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 % Web:    https://bitbucket.org/cgnieder/enotez/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2012-2014 Clemens Niederberger
+% Copyright 2012-2015 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -41,7 +41,7 @@
   info    = {Endnotes for \LaTeXe} ,
   authors = Clemens Niederberger ,
   email   = contact@mychemistry.eu ,
-  url     = https://bitbucket.org/cgnieder/enotez/ ,
+  url     = http://www.mychemistry.eu/forums/forum/enotez/ ,
   pre-output = \setfnpct{dont-mess-around} ,
   add-cmds = {
     @endnotemark,
@@ -51,6 +51,7 @@
     enmark ,
     enmarkstyle ,
     enotezwritemark ,
+    NewSplitTitleTag ,
     printendnotes ,
     setenotez ,
     splitendnotes ,
@@ -433,25 +434,50 @@ list style:
   \printendnotes
 \end{sourcecode}
 
-Please beware that the option \option{reset} also impacts here: the numbing
+Please beware that the option \option{reset} also impacts here: the numbering
 will be reset for each section or chapter, depending on the choice you made
 for \option{split}.
 
-There are two\sinceversion{0.7} -- or three, actually -- additional commands:
+There are additional commands:
 \begin{commands}
   \command{AtEveryListSplit}[\marg{code}]
-    Inserts \meta{code} before each sub-heading in a splitted list.
+    Inserts\sinceversion{0.7} \meta{code} before each sub-heading in a
+    splitted list.
   \command{AfterEveryListSplit}[\marg{code}]
-    Inserts \meta{code} after each sub-heading in a splitted list.
+    Inserts\sinceversion{0.7} \meta{code} after each sub-heading in a splitted
+    list.
   \command{EnotezCurrentSplitTitle}
-    Holds the current sub-heading in a splitted list and may be used in
-    \cs{AtEveryListSplit} and \cs{AfterEveryListSplit}.
+    Holds\sinceversion{0.7} the current sub-heading in a splitted list and may
+    be used in \cs{AtEveryListSplit} and \cs{AfterEveryListSplit}.
+  \command{NewSplitTitleTag}[\marg{tag}\marg{replacement}]
+    In\sinceversion{0.8} the sub-headings of a splitted list, the tags
+    \code{<ref>}, \code{<name>} and \code{<split-level-id>} can be used per
+    default.  This command allows to define additional tags.
 \end{commands}
+
+The tags that can be used for setting the sub-headings of a splitted list have
+the following meaning:
+\begin{description}
+  \item[\code{<ref>}] The counter representation of the current section or
+    chapter, \ie, either the corresponding expansion of \cs*{thesection} or
+    \cs*{thechapter}, depending on the split-level.
+  \item[\code{<name>}] The name of the split-level, \ie, either ``section'' or
+    ``chapter'', depending on the split-level.  This is language sensitive
+    (see section~\ref{sec:language-support}).  The corresponding translation
+    ids are \code{enotez-section} and \code{enotez-chapter}, respectively.
+  \item[\code{<split-level-id>}] The number of the current section or chapter,
+    \ie, either the corresponding expansion of \verbcode+\arabic{section}+ or
+    \verbcode+\arabic{chapter}+, depending on the split-level.
+\end{description}
+The command \cs{NewSplitTitleTag} let's you define your own. You can use the
+three existing tags inside the replacement.  Note that the \meta{tag} argument
+is input without opening \code{<} and closing \code{>}!
+\cs{NewSplitTitleTag}\Marg{own}\Marg{...} would define the tag \code{<own>}.
 
 \enotez\ comes with an example document for a split list which you should find
 in the same folder as this documentation.
 
-\section{Language Support}
+\section{Language Support}\label{sec:language-support}
 \enotez\ uses the \pkg{translations} package~\cite{pkg:translations} to
 translate language dependent strings.  The advantage of this is that language
 settings with \pkg{babel}~\cite{pkg:babel} or
@@ -472,14 +498,14 @@ If you like you can also drop me an email at
 correct translations to \enotez.
 
 \section{hyperref Support}
-If \pkg{hyperref} is loaded and you are using the option \key{totoc} (see
-p~\pageref{key:totoc}) the list title is linked via a \cs*{phantomsection}.
+If \pkg{hyperref} is loaded and you are using the option \option{totoc} (see
+page~\pageref{key:totoc}) the list title is linked via a \cs*{phantomsection}.
 
 If \pkg{hyperref} is used with \code{hyperfootnotes} set to \code{true} the
 endnote marks are linked to the respective entries in the
 list\changedversion{0.7}.  If you also set \enotez' option \option{backref}
-(see p~\pageref{key:backref}) the notes in the list are themselves linked to
-the marks in the text.
+(see page~\pageref{key:backref}) the notes in the list are themselves linked
+to the marks in the text.
 
 \AtNextEndnotesList{This is an example of a preamble to the list set with
 \cs{AtNextEndnotesList}.}
