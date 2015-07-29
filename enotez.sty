@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2015/06/24}
-  {0.8}
+  {2015/07/29}
+  {0.8a}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -177,29 +177,34 @@
     list-name        .tl_set:N           = \l__enotez_list_name_tl ,
     reset            .bool_set:N         = \l__enotez_reset_bool ,
     % TODO: add symbols and other possible formats, use cntformats?
-    counter-format   .choice_code:n      =
-      \cs_set_eq:Nc \enotez_counter_format:n
-        { __enotez_int_to_ \l_keys_choice_tl :n } ,
-    counter-format   .generate_choices:n =
-      { arabic , alph , Alph , roman , Roman , symbols } ,
+    counter-format   .choices:nn         =
+      { arabic , alph , Alph , roman , Roman , symbols }
+      {
+        \cs_set_eq:Nc \enotez_counter_format:n
+          { __enotez_int_to_ \l_keys_choice_tl :n }
+      } ,
     mark-format      .code:n             = \cs_set:Npn \enmarkstyle {#1} ,
     mark-cs          .code:n             = \cs_set:Npn \enotezwritemark {#1} ,
-    totoc            .choice_code:n      =
-      \tl_if_eq:VnTF \l_keys_choice_tl { false }
-        { \bool_set_false:N \l__enotez_totoc_bool }
-        {
-          \bool_set_true:N \l__enotez_totoc_bool
-          \tl_set_eq:NN \l__enotez_totoc_tl \l_keys_choice_tl
-        } ,
-    totoc            .generate_choices:n = { section , chapter , false } ,
+    totoc            .choices:nn         =
+      { section , chapter , false }
+      {
+        \tl_if_eq:VnTF \l_keys_choice_tl { false }
+          { \bool_set_false:N \l__enotez_totoc_bool }
+          {
+            \bool_set_true:N \l__enotez_totoc_bool
+            \tl_set_eq:NN \l__enotez_totoc_tl \l_keys_choice_tl
+          }
+      } ,
     list-heading     .code:n             =
       \cs_set:Npn \enotezlistheading ##1 {#1} ,
-    split            .choice_code:n      =
-      \tl_if_eq:VnTF \l_keys_choice_tl { false }
-        { \bool_set_false:N \l__enotez_split_bool }
-        { \bool_set_true:N \l__enotez_split_bool }
-      \tl_set_eq:NN \l__enotez_split_tl \l_keys_choice_tl ,
-    split            .generate_choices:n = { section , chapter , false } ,
+    split            .choices:nn          =
+      { section , chapter , false }
+      {
+        \tl_if_eq:VnTF \l_keys_choice_tl { false }
+          { \bool_set_false:N \l__enotez_split_bool }
+          { \bool_set_true:N \l__enotez_split_bool }
+        \tl_set_eq:NN \l__enotez_split_tl \l_keys_choice_tl
+      } ,
     split-sectioning .code:n             =
       \enotez_option_deprecated:nn { split-sectioning } { split-heading }
       \cs_set:Npn \enotezsplitlistheading ##1 {#1}
@@ -1059,6 +1064,7 @@
                    list
 2015/06/24 v0.8  - bug fix in typesetting the split-headings
                  - new command \NewSplitTitleTag
+2015/07/29 v0.8a - adapt to deprecated choice selection in keys
 
 % --------------------------------------------------------------------------
 % TODO:
