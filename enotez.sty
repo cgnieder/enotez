@@ -533,7 +533,7 @@
             {
               \tl_if_eq:xxT
                 { \int_use:N \l__enotez_tmpa_int }
-                { \prop_get:Nn \g__enotez_endnote_split_prop { ##1 } }
+                { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
                 {
                   \enotez_get_split_title:n { ##1 }
                   \enotez_get_note:nn {#1} { ##1 }
@@ -596,7 +596,7 @@
               \tl_clear:N \l__enotez_tmpc_tl
               \tl_if_eq:xxT
                 { \int_use:N \l__enotez_tmpa_int }
-                { \prop_get:Nn \g__enotez_endnote_split_prop { ##1 } }
+                { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
                 { \tl_put_right:Nn \l__enotez_tmpc_tl { ##1 } }
               \tl_if_blank:VF \l__enotez_tmpc_tl
                 {
@@ -607,7 +607,7 @@
                 }
               \tl_if_eq:xxT
                 { \int_use:N \l__enotez_tmpa_int }
-                { \prop_get:Nn \g__enotez_endnote_split_prop { ##1 } }
+                { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
                 {
                   \enotez_get_note:nn {#1} { ##1 }
                   \bool_if:NT \l__enotez_print_note_bool
@@ -641,7 +641,7 @@
       { \box_move_up:nn { 1em } { \hbox:n { \hypertarget { enz.#1 } { } } } }
     \tl_use:N \l__enotez_list_number_format_tl
     \tl_if_eq:nxTF { a }
-      { \prop_get:Nn \g__enotez_endnote_man_prop {#1} }
+      { \prop_item:Nn \g__enotez_endnote_man_prop {#1} }
       {
         \bool_if:nTF
           { \l__enotez_hyperfootnotes_bool && \l__enotez_hyperbackref_bool }
@@ -744,9 +744,9 @@
       \__enotez_replace_split_title_tag:NnV \l__enotez_tmpa_tl {name}
         \g__enotez_actual_sectioning_tl
       \__enotez_replace_split_title_tag:Nnx \l__enotez_tmpa_tl {ref}
-        { \prop_get:Nn \g__enotez_endnote_sect_prop {#3} }
+        { \prop_item:Nn \g__enotez_endnote_sect_prop {#3} }
       \__enotez_replace_split_title_tag:Nnx \l__enotez_tmpa_tl {split-level-id}
-        { \prop_get:Nn \g__enotez_endnote_sect_id_prop {#3} }
+        { \prop_item:Nn \g__enotez_endnote_sect_id_prop {#3} }
       % retokenize:
       \tl_set_rescan:NnV \l__enotez_tmpa_tl { } \l__enotez_tmpa_tl
       \tl_gset_eq:NN #1 \l__enotez_tmpa_tl
