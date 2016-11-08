@@ -409,7 +409,7 @@
     \bool_if:NT \l__enotez_totoc_bool
       {
         \bool_if:NT \l__enotez_hyperref_bool { \phantomsection }
-        \addcontentsline { toc } { \l__enotez_totoc_tl } { \l__enotez_list_name_tl }
+        \addcontentsline {toc} { \l__enotez_totoc_tl } { \l__enotez_list_name_tl }
       }
     \enotez_list_heading:n { \l__enotez_list_name_tl }
     \enotez_list_preamble:
@@ -698,19 +698,29 @@
 % internal printendnotes:
 \cs_new_protected:Npn \enotez_print_endnotes:nn #1#2
   {
-    \tl_if_blank:nTF {#2}
-      { \UseInstance {enotez-list} { \l__enotez_list_instance_tl } }
-      { \UseInstance {enotez-list} {#2} }
-    {#1}
-    \bool_if:NF \l__enotez_split_bool
+    \enotez_if_endnotes:T
       {
-        \bool_if:NT \l__enotez_reset_bool
+        \tl_if_blank:nTF {#2}
+          { \UseInstance {enotez-list} { \l__enotez_list_instance_tl } }
+          { \UseInstance {enotez-list} {#2} }
+        {#1}
+        \bool_if:NF \l__enotez_split_bool
           {
-            \setcounter {endnote} {0}
-            % \int_gzero:N \g__enotez_endnote_mark_int
+            \bool_if:NT \l__enotez_reset_bool
+              {
+                \setcounter {endnote} {0}
+                % \int_gzero:N \g__enotez_endnote_mark_int
+              }
+            \int_gincr:N \g__enotez_list_printed_int
           }
-        \int_gincr:N \g__enotez_list_printed_int
       }
+  }
+
+\prg_new_conditional:Npnn \enotez_if_endnotes: {p,T,F,TF}
+  {
+    \int_compare:nTF { \value {endnote} > 0 }
+      { \prg_return_true: }
+      { \prg_return_false: }
   }
 
 % the user command:
