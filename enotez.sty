@@ -216,14 +216,15 @@
     \quark_if_no_value:nTF {#1}
       {
         \stepcounter {endnote}% problem with option `reset'
+        % \show \theendnote
         \cs_gset:cpx {@currentlabel} {\theendnote}
         \enotez_write_mark:xn
           { \int_use:N \g__enotez_endnote_id_int }
           { \theendnote }
       }
       {
-        \cs_gset:cpx {@currentlabel} {#1}
-        \cs_gset_eq:NN \theendnote \@currentlabel
+        \cs_gset:cpn {@currentlabel} {#1}
+        % \cs_gset_eq:NN \theendnote \@currentlabel
         \enotez_write_mark:xn { \int_use:N \g__enotez_endnote_id_int } {#1}
       }
     \bool_if:NT \l__enotez_disable_bool
