@@ -134,12 +134,13 @@ note mark.
 \end{example}
 There's not really much more to it.  It is possible to add a custom mark by
 using the optional argument but that shouldn't be needed too often.
-\cs{endnote} works fine inside tables, minipages, floats and
-captions\footnote{This has been tested with the standard classes,
-  \cls{memoir}, and the \cls{KOMA-Script} classes, with and without the
-  \pkg*{caption} package.  If you're using another package that redefines
-  \cs*{caption} or are using another class it might not work.  Before you
-  place a note in a caption you should re-think the idea anyway.}.  Endnotes
+% \cs{endnote} works fine inside tables, minipages, floats and
+% captions\footnote{This has been tested with the standard classes,
+%   \cls{memoir}, and the \cls{KOMA-Script} classes, with and without the
+%   \pkg*{caption} package.  If you're using another package that redefines
+%   \cs*{caption} or are using another class it might not work.  Before you
+%   place a note in a caption you should re-think the idea anyway.}.
+Endnotes
 can also be nested.
 
 Since this functionality seemed making a pair
@@ -515,4 +516,3 @@ to the marks in the text.
 \printendnotes[addsec]
 
 \end{document}
-

@@ -1,8 +1,8 @@
-\documentclass{scrartcl}
+\documentclass{article}
+% \documentclass{scrartcl}
 % \documentclass{memoir}
-% \documentclass{article}
 \usepackage[english]{babel}
-\usepackage{caption}
+% \usepackage{caption}
 \usepackage[T1]{fontenc}
 \usepackage{libertine}
 
@@ -14,21 +14,18 @@
   split=section,
   list-style=section,
   reset,
+  backref
 % customize the titles in between, e.g.:
 %   split-sectioning=addsec,
 %   split-title=\par\noindent<name> <ref>:
 }
 
 \usepackage{fnpct}
-% \AdaptNote\endnote\multendnote
 
 \usepackage{mwe}
 \usepackage[colorlinks]{hyperref}
 
 \begin{document}
-\makeatletter
-% \texttt{\meaning\@@makecaption}
-\makeatother
 
 \tableofcontents
 
@@ -38,10 +35,14 @@ with a \textbf{nested}\multendnote{\kant[3];\kant[4]} endnote.}.
 Text\multendnote{\kant[5];\kant[6]}.
 
 \begin{figure}[htp]
- \centering
- \includegraphics[width=.4\linewidth]{example-image-a}
- \caption[caption]{Some text\endnote{An endnote with a nested endnote\endnote{\kant[7]}
- inside a figure caption.}.}
+  \centering
+  \includegraphics[width=.4\linewidth]{example-image-a}
+  % \addtocounter{endnote}{-1} % <<< need this in memoir class and with
+                               % `caption' package when using an endnote
+                               % inside a caption
+  \caption[caption]{Some text\endnotemark.}
+  \endnotetext{An endnote with a nested endnote\endnote{\kant[7]} inside a
+    figure caption.}
 \end{figure}
 
 \appendix
