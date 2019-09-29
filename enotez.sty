@@ -8,7 +8,7 @@
 % Web:    https://bitbucket.org/cgnieder/enotez/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2012-2017 Clemens Niederberger
+% Copyright 2012--2019 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -31,20 +31,12 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2017/04/24}
-  {0.9a}
+  {2019/09/29}
+  {0.9c}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
 % messages
-% \msg_new:nnnn {enotez} {captions}
-%   { Endnotes~might~not~work~in~captions. }
-%   {
-%     Endnotes~might~not~work~inside~captions.~You~might~try~to~use~the~caption~
-%     package~if~you~encounter~problems~but~that's~not~a~promise~that~things~
-%     will~work~then.
-%   }
-
 \msg_new:nnnn {enotez} {deprecated}
   { The~#1~`#2'~is~deprecated.~Use~`#3'~instead~\msg_line_context:. }
   {
@@ -76,9 +68,6 @@
 \bool_new:N \l__enotez_hyperfootnotes_bool
 \bool_new:N \l__enotez_hyperbackref_bool
 \bool_new:N \l__enotez_split_bool
-% \bool_new:N \l__enotez_caption_patched_bool
-% \bool_new:N \l__enotez_koma_patched_bool
-% \bool_new:N \l__enotez_memoir_patched_bool
 \bool_new:N \l__enotez_disable_bool
 
 \tl_new:N   \l__enotez_tmpa_tl
@@ -88,7 +77,7 @@
 \tl_new:N   \l__enotez_totoc_tl
 \tl_new:N   \l__enotez_list_name_tl
 \tl_set:Nn  \l__enotez_list_name_tl {Notes}
-\tl_new:N   \l__enotez_endnote_text_tl
+\tl_new:N   \g__enotez_endnote_text_tl
 \tl_new:N   \l__enotez_endnote_mark_tl
 \tl_new:N   \l__enotez_list_instance_tl
 \tl_set:Nn  \l__enotez_list_instance_tl {plain}
@@ -131,7 +120,9 @@
 \prop_new:N \g__enotez_endnote_sect_id_prop
 \prop_new:N \g__enotez_endnote_man_prop
 
-\cs_new_protected:Npn \enotez_nobreak: { \tex_penalty:D \c_ten_thousand }
+\seq_new:N \l__enotez_tmpa_seq
+
+\cs_new_protected:Npn \enotez_nobreak: { \tex_penalty:D 10000 \scan_stop: }
 
 % --------------------------------------------------------------------------
 % options:
@@ -224,7 +215,6 @@
       }
       {
         \cs_gset:cpn {@currentlabel} {#1}
-        % \cs_gset_eq:NN \theendnote \@currentlabel
         \enotez_write_mark:xn { \int_use:N \g__enotez_endnote_id_int } {#1}
       }
     \bool_if:NT \l__enotez_disable_bool
@@ -265,7 +255,6 @@
             \enotez_save_note:xxxxxnn
               { \int_use:N \g__enotez_endnote_id_int }
               { \theendnote }
-              % { \int_use:N \g__enotez_endnote_mark_int }
               { \int_use:N \g__enotez_list_printed_int }
               { \thesection }
               { \int_eval:n { \value{section} } }
@@ -313,7 +302,7 @@
 % #6: a/m (automatic/manually)
 % #7: text
 \cs_new_protected:Npn \enotez_save_note:nnnnnnn #1#2#3#4#5#6#7
-  { \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } }
+  { \if@filesw \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } \fi }
 \cs_generate_variant:Nn \enotez_save_note:nnnnnnn { xxxxx , xnxxx }
 
 \cs_new_protected:Npn \enotez@note #1#2#3#4#5#6#7
@@ -383,8 +372,6 @@
 
 \tl_new:N \enotezsplitlistheading
 \bool_new:N \l__enotez_splitted_list_heading_bool
-% \cs_new:Npn \enotezsplitlistheading
-%   { \use:c { \l__enotez_splitted_list_sectioning_tl } }
 
 \DeclareObjectType {enotez-list} {1}
 
@@ -436,7 +423,7 @@
                             { \enotez_write_list_number:n { ##1 } }
                           \tl_use:N \c_space_tl
                         }
-                      \tl_use:N \l__enotez_endnote_text_tl
+                      \tl_use:N \g__enotez_endnote_text_tl
                       \par
                       \group_end:
                     }
@@ -479,20 +466,23 @@
       \int_zero:N \l__enotez_tmpa_int
       \int_do_while:nn { \l__enotez_tmpa_int <= \g__enotez_list_printed_int }
         {
+          \seq_clear:N \l__enotez_tmpa_seq
           \prop_map_inline:Nn \g__enotez_endnote_mark_prop
             {
-              \tl_clear:N \l__enotez_tmpc_tl
               \tl_if_eq:xxT
                 { \int_use:N \l__enotez_tmpa_int }
                 { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
-                { \tl_put_right:Nn \l__enotez_tmpc_tl { ##1 } }
-              \tl_if_blank:VF \l__enotez_tmpc_tl
-                {
-                  \enotez_get_split_title:n { ##1 }
-                  \group_begin:
-                    \tl_use:N \l__enotez_list_format_tl
-                    \begin{\l__enotez_list_type_tl}
-                }
+                { \seq_put_right:Nn \l__enotez_tmpa_seq { ##1 } }
+            }
+          \seq_if_empty:NF \l__enotez_tmpa_seq
+            {
+              \enotez_get_split_title:x { \seq_item:Nn \l__enotez_tmpa_seq {1} }
+              \group_begin:
+                \tl_use:N \l__enotez_list_format_tl
+                \begin{\l__enotez_list_type_tl}
+            }
+          \seq_map_inline:Nn \l__enotez_tmpa_seq
+            {
               \tl_if_eq:xxT
                 { \int_use:N \l__enotez_tmpa_int }
                 { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
@@ -505,12 +495,12 @@
                           \enotez_list_number:n
                             { \enotez_write_list_number:n { ##1 } }
                         ]
-                      \tl_use:N \l__enotez_endnote_text_tl
+                      \tl_use:N \g__enotez_endnote_text_tl
                     }
                 }
-              \tl_if_blank:VF \l__enotez_tmpc_tl
-                { \end{\l__enotez_list_type_tl} \group_end: }
             }
+          \seq_if_empty:NF \l__enotez_tmpa_seq
+            { \end{\l__enotez_list_type_tl} \group_end: }  
           \int_incr:N \l__enotez_tmpa_int
         }
     \enotez_list_postamble:
@@ -559,7 +549,10 @@
     \bool_if:nTF {#1}
       {
         \prop_get:NnN \g__enotez_endnote_mark_prop {#2} \l__enotez_endnote_mark_tl
-        \prop_get:NnN \g__enotez_endnote_text_prop {#2} \l__enotez_endnote_text_tl
+        \prop_get:NnN \g__enotez_endnote_text_prop {#2} \g__enotez_endnote_text_tl
+        \tl_gset_eq:NN
+          \g__enotez_endnote_text_tl
+          \g__enotez_endnote_text_tl
         \bool_set_true:N \l__enotez_print_note_bool
       }
       {
@@ -569,14 +562,8 @@
             \bool_set_true:N \l__enotez_print_note_bool
             \tl_set:Nx \l__enotez_endnote_mark_tl
               { \prop_item:Nn \g__enotez_endnote_mark_prop {#2} }
-            \tl_set:Nx \l__enotez_endnote_text_tl
+            \tl_gset:Nx \g__enotez_endnote_text_tl
               { \prop_item:Nn \g__enotez_endnote_text_prop {#2} }
-            % \prop_gpop:NnN \g__enotez_endnote_mark_prop
-            %   {#2}
-            %   \l__enotez_endnote_mark_tl
-            % \prop_gpop:NnN \g__enotez_endnote_text_prop
-            %   {#2}
-            %   \l__enotez_endnote_text_tl
           }
           {
             \int_compare:nTF { \l__enotez_tmpa_tl = \g__enotez_list_printed_int }
@@ -584,14 +571,8 @@
                 \bool_set_true:N \l__enotez_print_note_bool
                 \tl_set:Nx \l__enotez_endnote_mark_tl
                   { \prop_item:Nn \g__enotez_endnote_mark_prop {#2} }
-                \tl_set:Nx \l__enotez_endnote_text_tl
+                \tl_gset:Nx \g__enotez_endnote_text_tl
                   { \prop_item:Nn \g__enotez_endnote_text_prop {#2} }
-                % \prop_gpop:NnN \g__enotez_endnote_mark_prop
-                %   {#2}
-                %   \l__enotez_endnote_mark_tl
-                % \prop_gpop:NnN \g__enotez_endnote_text_prop
-                %   {#2}
-                %   \l__enotez_endnote_text_tl
                 \prop_gremove:Nn  \g__enotez_endnote_split_prop {#2}
               }
               { \bool_set_false:N \l__enotez_print_note_bool }
@@ -686,6 +667,7 @@
       }
     \prop_get:NnN \g__enotez_endnote_split_prop {#1} \l__enotez_last_split_id_tl
   }
+\cs_generate_variant:Nn \enotez_get_split_title:n {x}
 
 % --------------------------------------------------------------------------
 % the marks in the list:
@@ -852,10 +834,7 @@
               {
                 \int_gincr:N \g__enotez_list_printed_int
                 \bool_if:NT \l__enotez_reset_bool
-                  {
-                    \setcounter {endnote} {0}
-                    % \int_gzero:N \g__enotez_endnote_mark_int
-                  }
+                  { \setcounter {endnote} {0} }
               }
           }
           {
@@ -863,10 +842,7 @@
               {
                 \int_gincr:N \g__enotez_list_printed_int
                 \bool_if:NT \l__enotez_reset_bool
-                  {
-                    \setcounter {endnote} {0}
-                    % \int_gzero:N \g__enotez_endnote_mark_int
-                  }
+                  { \setcounter {endnote} {0} }
               }
           }
       }
