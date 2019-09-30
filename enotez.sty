@@ -66,6 +66,7 @@
 \cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
 \cs_generate_variant:Nn \tl_if_eq:nnT  { xx , V }
 \cs_generate_variant:Nn \str_if_in:nnT { o }
+\cs_generate_variant:Nn \cs_set:Npn    { cpV }
 
 % --------------------------------------------------------------------------
 % variables:
@@ -198,6 +199,7 @@
 % #2: mark
 \cs_new_protected:Npn \enotez_write_mark:nn #1#2
   {
+    % but what if #2 is the reference to a different mark?
     \bool_if:NTF \l__enotez_hyperfootnotes_bool
       {
         \enotezwritemark { \hyperlink {enz.#1} { \enmarkstyle #2 } }
@@ -210,6 +212,10 @@
       { \enotezwritemark { \enmarkstyle #2 } }
   }
 \cs_generate_variant:Nn \enotez_write_mark:nn {x}
+
+% #1: argument to \ref
+\cs_new_protected:Npn \enotez_ref_note:n #1
+  { \enotezwritemark { \enmarkstyle { \ref {#1} } } }
 
 % the internal endnote:
 \cs_new_protected:Npn \enotez_endnote:nn #1#2
@@ -224,7 +230,7 @@
     \quark_if_no_value:nTF {#1}
       {
         \stepcounter {endnote} % problem with option `reset'
-        \cs_gset:cpx {@currentlabel} {\theendnote}
+        \cs_gset:cpx {@currentlabel} { \theendnote }
         \enotez_write_mark:xn
           { \int_use:N \g__enotez_endnote_id_int }
           { \theendnote }
@@ -257,7 +263,7 @@
             \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl
           }
           {
-            \enotez_save_note:xoxoxnn
+            \enotez_save_note:xxxxxnn
               { \int_use:N \g__enotez_endnote_id_int }
               { \theendnote }
               { \int_use:N \g__enotez_list_printed_int }
@@ -267,7 +273,7 @@
               {#2}
           }
           {
-            \enotez_save_note:xoxoxnn
+            \enotez_save_note:xxxxxnn
               { \int_use:N \g__enotez_endnote_id_int }
               { \theendnote }
               { \int_use:N \g__enotez_list_printed_int }
@@ -285,7 +291,7 @@
             \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl
           }
           {
-            \enotez_save_note:xnxoxnn
+            \enotez_save_note:xnxxxnn
               { \int_use:N \g__enotez_endnote_id_int }
               {#1}
               { \int_use:N \g__enotez_list_printed_int }
@@ -295,7 +301,7 @@
               {#2}
           }
           {
-            \enotez_save_note:xnxoxnn
+            \enotez_save_note:xnxxxnn
               { \int_use:N \g__enotez_endnote_id_int }
               {#1}
               { \int_use:N \g__enotez_list_printed_int }
@@ -321,7 +327,7 @@
     \legacy_if:nT {@filesw}
       { \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } }
   }
-\cs_generate_variant:Nn \enotez_save_note:nnnnnnn { xoxox , xnxox }
+\cs_generate_variant:Nn \enotez_save_note:nnnnnnn { xxxxx , xnxxx }
 
 \cs_new_protected:Npn \enotez@note #1#2#3#4#5#6#7
   {
@@ -379,6 +385,9 @@
       { \enotez_endnote_text:nn { \q_no_value } }
   }
 
+\cs_new_protected:Npn \refendnote #1
+  { \enotez_ref_note:n {#1} }
+  
 \cs_new:Npn \enotez_endnote_text_aux:w [#1]#2
   { \enotez_endnote_text:nn {#1} {#2} }
 
@@ -470,6 +479,7 @@
                             { \enotez_write_list_number:n {##1} }
                           \tl_use:N \c_space_tl
                         }
+                      \cs_set:cpn {@currentlabel} { \l__enotez_endnote_mark_tl }
                       \tl_use:N \g__enotez_endnote_text_tl
                       \par
                     \group_end:
@@ -514,8 +524,8 @@
           {
             \tl_if_eq:xxT
               { \int_use:N \l__enotez_tmpa_int }
-              { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
-              { \seq_put_right:Nn \l__enotez_tmpa_seq { ##1 } }
+              { \prop_item:Nn \g__enotez_endnote_split_prop {##1} }
+              { \seq_put_right:Nn \l__enotez_tmpa_seq {##1} }
           }
         \seq_if_empty:NF \l__enotez_tmpa_seq
           {
@@ -528,30 +538,34 @@
           {
             \tl_if_eq:xxT
               { \int_use:N \l__enotez_tmpa_int }
-              { \prop_item:Nn \g__enotez_endnote_split_prop { ##1 } }
+              { \prop_item:Nn \g__enotez_endnote_split_prop {##1} }
               {
-                \enotez_get_note:nn {#1} { ##1 }
+                \enotez_get_note:nn {#1} {##1}
                 \bool_if:NT \l__enotez_print_note_bool
                   {
                     \item
                       [
                         \enotez_list_number:n
-                          { \enotez_write_list_number:n { ##1 } }
+                          { \enotez_write_list_number:n {##1} }
                       ]
+                    \cs_set:cpn {@currentlabel} { \l__enotez_endnote_mark_tl }
                     \tl_use:N \g__enotez_endnote_text_tl
                   }
               }
           }
         \seq_if_empty:NF \l__enotez_tmpa_seq
-          { \end{\l__enotez_list_type_tl} \group_end: }  
+          {
+              \end{\l__enotez_list_type_tl}
+            \group_end:
+          }
         \int_incr:N \l__enotez_tmpa_int
       }
     \enotez_list_postamble:
   }
 
 % some default styles:
-\DeclareInstance {enotez-list} {plain} {paragraph } {  }
-\DeclareInstance {enotez-list} {description} {list} {  }
+\DeclareInstance {enotez-list} {plain} {paragraph } { }
+\DeclareInstance {enotez-list} {description} {list} { }
 \DeclareInstance {enotez-list} {itemize} {list} { list-type = itemize }
 
 % --------------------------------------------------------------------------
@@ -561,8 +575,7 @@
     \bool_if:NT \l__enotez_hyperfootnotes_bool
       { \box_move_up:nn {1em} { \hbox:n { \hypertarget {enz.#1} { } } } }
     \tl_use:N \l__enotez_list_number_format_tl
-    \tl_if_eq:nxTF {a}
-      { \prop_item:Nn \g__enotez_endnote_man_prop {#1} }
+    \tl_if_eq:nxTF {a} { \prop_item:Nn \g__enotez_endnote_man_prop {#1} }
       {
         \bool_if:nTF
           { \l__enotez_hyperfootnotes_bool && \l__enotez_hyperbackref_bool }
@@ -1005,7 +1018,8 @@
                  - implement issue #17: new choices for the totoc option:
                    `auto', `subsection' and `part'
                  - fix issue #18
-                 - implement issue #13  
+                 - implement issue #13
+                 - new command \refendnote, fix issue #19
 
 % --------------------------------------------------------------------------
 % TODO:
