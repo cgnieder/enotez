@@ -31,8 +31,8 @@
 \RequirePackage{ expl3 , xparse , l3keys2e , xtemplate , etoolbox , xpatch , scrlfile }
 \ProvidesExplPackage
   {enotez}
-  {2019/09/29}
-  {0.9c}
+  {2019/09/30}
+  {0.10}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -213,9 +213,9 @@
   }
 \cs_generate_variant:Nn \enotez_write_mark:nn {x}
 
-% #1: argument to \ref
-\cs_new_protected:Npn \enotez_ref_note:n #1
-  { \enotezwritemark { \enmarkstyle { \ref {#1} } } }
+% % #1: argument to \ref
+% \cs_new_protected:Npn \enotez_ref_note:n #1
+%   { \enotezwritemark { \enmarkstyle { \ref {#1} } } }
 
 % the internal endnote:
 \cs_new_protected:Npn \enotez_endnote:nn #1#2
@@ -235,7 +235,7 @@
           { \theendnote }
       }
       {
-        \cs_gset:cpn {@currentlabel} {#1}
+        \cs_gset:cpn {@currentlabel} {\p@endnote#1}
         \enotez_write_mark:xn { \int_use:N \g__enotez_endnote_id_int } {#1}
       }
     \bool_if:NT \l__enotez_disable_bool
@@ -384,8 +384,8 @@
       { \enotez_endnote_text:nn { \q_no_value } }
   }
 
-\cs_new_protected:Npn \refendnote #1
-  { \enotez_ref_note:n {#1} }
+% \cs_new_protected:Npn \refendnote #1
+%   { \enotez_ref_note:n {#1} }
   
 \cs_new:Npn \enotez_endnote_text_aux:w [#1]#2
   { \enotez_endnote_text:nn {#1} {#2} }
@@ -506,7 +506,8 @@
                 { \enotez_write_list_number:n {##1} }
               \tl_use:N \c_space_tl
             }
-          \cs_set:cpn {@currentlabel} { \l__enotez_endnote_mark_tl }
+          % \cs_set:cpn {@currentlabel}
+          %   { \p@endnote \l__enotez_endnote_mark_tl }
           \tl_use:N \g__enotez_endnote_text_tl
           \par
           \dim_compare:nT { \l__enotez_list_notes_sep_dim != 0pt }
@@ -551,7 +552,8 @@
             \enotez_list_number:n
               { \enotez_write_list_number:n {##1} }
           ]
-        \cs_set:cpn {@currentlabel} { \l__enotez_endnote_mark_tl }
+        % \cs_set:cpn {@currentlabel}
+        %   { \p@endnote \l__enotez_endnote_mark_tl }
         \tl_use:N \g__enotez_endnote_text_tl
       }
       {
@@ -1019,7 +1021,7 @@
                    `auto', `subsection' and `part'
                  - fix issue #18
                  - implement issue #13
-                 - new command \refendnote, fix issue #19
+                 % - new command \refendnote, fix issue #19
                  - implement issue #9
 
 % --------------------------------------------------------------------------
