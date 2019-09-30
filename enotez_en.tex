@@ -201,7 +201,8 @@ If used without argument it prints all notes set so far with
 \cs{endnote}. The current list will then be cleared.  All endnotes set after
 it are stored again for the next usage of \cs{printendnotes}.  The starred
 version will print \emph{all} endnotes but shouldn't be used more than once if
-you have nested endnotes.
+you have nested endnotes.  Unfortunately the starred version does not work
+together with the \option{split} option.
 
 It may take several compilation runs until all notes are printed correctly.
 In a first run they are written to the \code{aux} file.  In the second run
