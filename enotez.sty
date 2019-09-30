@@ -317,7 +317,10 @@
 % #6: a/m (automatic/manually)
 % #7: text
 \cs_new_protected:Npn \enotez_save_note:nnnnnnn #1#2#3#4#5#6#7
-  { \if@filesw \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } \fi }
+  {
+    \legacy_if:nT {@filesw}
+      { \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } }
+  }
 \cs_generate_variant:Nn \enotez_save_note:nnnnnnn { xoxox , xnxox }
 
 \cs_new_protected:Npn \enotez@note #1#2#3#4#5#6#7
@@ -1002,6 +1005,7 @@
                  - implement issue #17: new choices for the totoc option:
                    `auto', `subsection' and `part'
                  - fix issue #18
+                 - implement issue #13  
 
 % --------------------------------------------------------------------------
 % TODO:
