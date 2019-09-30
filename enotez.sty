@@ -45,10 +45,17 @@
     forever~I~encourage~you~to~switch.
   }
 
-\cs_new:Npn \enotez_option_deprecated:nn #1#2
+\msg_new:nnn {enotez} {totoc}
+  {
+    You've~ set~ `totoc~ =~ auto'.~ However,~ I'm~ unbale~ to~ determine~ the~
+    toc~ level~ automatically.~ Please~ choose~ the~ level~ yourself.
+  }
+
+
+\cs_new_protected:Npn \enotez_option_deprecated:nn #1#2
   { \msg_warning:nnnnn {enotez} {deprecated} {option} {#1} {#2} }
 
-\cs_new:Npn \enotez_command_deprecated:NN #1#2
+\cs_new_protected:Npn \enotez_command_deprecated:NN #1#2
   {
     \msg_warning:nnnnn {enotez} {deprecated} {command}
       { \token_to_str:N #1 } { \token_to_str:N #2 }
@@ -57,7 +64,8 @@
 % --------------------------------------------------------------------------
 % variants of kernel functions
 \cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
-\cs_generate_variant:Nn \tl_if_eq:nnT  { xx }
+\cs_generate_variant:Nn \tl_if_eq:nnT  { xx , V }
+\cs_generate_variant:Nn \str_if_in:nnT { o }
 
 % --------------------------------------------------------------------------
 % variables:
@@ -121,6 +129,15 @@
 \prop_new:N \g__enotez_endnote_man_prop
 
 \seq_new:N \l__enotez_tmpa_seq
+\seq_new:N \l__enotez_sectioning_seq
+\seq_put_right:Nn \l__enotez_sectioning_seq {part}
+\seq_put_right:Nn \l__enotez_sectioning_seq {chapter}
+\seq_put_right:Nn \l__enotez_sectioning_seq {section}
+\seq_put_right:Nn \l__enotez_sectioning_seq {subsection}
+\seq_put_right:Nn \l__enotez_sectioning_seq {subsubsection}
+\seq_put_right:Nn \l__enotez_sectioning_seq {paragraph}
+
+\str_new:N \l__enotez_tmpa_str
 
 \cs_new_protected:Npn \enotez_nobreak: { \tex_penalty:D 10000 \scan_stop: }
 
@@ -132,7 +149,6 @@
     footnotes        .bool_set:N         = \l__enotez_footnotes_tl ,
     list-name        .tl_set:N           = \l__enotez_list_name_tl ,
     reset            .bool_set:N         = \l__enotez_reset_bool ,
-    % TODO: add symbols and other possible formats, use cntformats?
     counter-format   .choice: ,
     counter-format / arabic  .code:n = \cs_set:Npn \theendnote {\arabic{endnote}} ,
     counter-format / alph    .code:n = \cs_set:Npn \theendnote {\alph{endnote}} ,
@@ -143,27 +159,28 @@
     mark-format      .code:n             = \cs_set:Npn \enmarkstyle {#1} ,
     mark-cs          .code:n             = \cs_set:Npn \enotezwritemark {#1} ,
     totoc            .choices:nn         =
-      { section , chapter , false }
+      { section , chapter , part , false , auto }
       {
-        \tl_if_eq:VnTF \l_keys_choice_tl { false }
+        \tl_if_eq:VnTF \l_keys_choice_tl {false}
           { \bool_set_false:N \l__enotez_totoc_bool }
           {
             \bool_set_true:N \l__enotez_totoc_bool
             \tl_set_eq:NN \l__enotez_totoc_tl \l_keys_choice_tl
           }
       } ,
+    totoc            .default:n          = auto ,  
     list-heading     .code:n             =
       \cs_set:Npn \enotezlistheading ##1 {#1} ,
     split            .choices:nn          =
       { section , chapter , false }
       {
-        \tl_if_eq:VnTF \l_keys_choice_tl { false }
+        \tl_if_eq:VnTF \l_keys_choice_tl {false}
           { \bool_set_false:N \l__enotez_split_bool }
           { \bool_set_true:N \l__enotez_split_bool }
         \tl_set_eq:NN \l__enotez_split_tl \l_keys_choice_tl
       } ,
     split-sectioning .code:n             =
-      \enotez_option_deprecated:nn { split-sectioning } { split-heading }
+      \enotez_option_deprecated:nn {split-sectioning} {split-heading}
       \cs_set:Npn \enotezsplitlistheading ##1 {#1}
       \bool_set_true:N \l__enotez_splitted_list_heading_bool ,
     split-heading    .code:n             =
@@ -366,39 +383,68 @@
 
 % --------------------------------------------------------------------------
 % the list of notes
-\cs_if_exist:cTF { chapter }
+\cs_if_exist:cTF {chapter}
   { \cs_new:Npn \enotezlistheading { \chapter* } }
   { \cs_new:Npn \enotezlistheading { \section* } }
 
 \tl_new:N \enotezsplitlistheading
 \bool_new:N \l__enotez_splitted_list_heading_bool
 
+\cs_new_protected:Npn \enotez_set_totoc:
+  {
+    \bool_if:NT \l__enotez_totoc_bool
+      {
+        \bool_if:NT \l__enotez_hyperref_bool { \phantomsection }
+        \bool_set_false:N \l__enotez_tmpa_bool
+        \tl_if_eq:VnTF \l__enotez_totoc_tl {auto}
+          {
+            \seq_map_inline:Nn \l__enotez_sectioning_seq
+              {
+                \str_if_in:onT { \enotezlistheading{} } {##1}
+                  {
+                    \bool_set_true:N \l__enotez_tmpa_bool
+                    \tl_set:Nn \l__enotez_totoc_tl {##1}
+                  }
+              }
+            \bool_if:NF \l__enotez_tmpa_bool
+              {
+                \tl_set:Nn \l__enotez_totoc_tl {false}
+                \msg_warning:nn {enotez} {totoc}
+              }
+          }
+          { \bool_set_true:N \l__enotez_tmpa_bool }
+        \bool_if:NT \l__enotez_tmpa_bool
+          {
+            \addcontentsline
+              {toc}
+              { \l__enotez_totoc_tl }
+              { \l__enotez_list_name_tl }
+          }
+      }
+  }
+
 \DeclareObjectType {enotez-list} {1}
 
 \DeclareTemplateInterface {enotez-list} {paragraph} {1}
   {
-    heading       : function 1 = \enotezlistheading{#1}   ,
-    format        : tokenlist  = \footnotesize   ,
-    number        : function 1 = \enmark{#1}     ,
-    number-format : tokenlist  = \normalfont     ,
-    notes-sep     : length     = .5\baselineskip ,
+    heading       : function 1 = \enotezlistheading {#1} ,
+    format        : tokenlist  = \footnotesize           ,
+    number        : function 1 = \enmark{#1}             ,
+    number-format : tokenlist  = \normalfont             ,
+    notes-sep     : length     = .5\baselineskip
   }
 
 \DeclareTemplateCode {enotez-list} {paragraph} {1}
   {
-    heading       = \enotez_list_heading:n          ,
+    heading       = \enotez_list_heading:n           ,
     format        = \l__enotez_list_format_tl        ,
-    number        = \enotez_list_number:n           ,
+    number        = \enotez_list_number:n            ,
     number-format = \l__enotez_list_number_format_tl ,
-    notes-sep     = \l__enotez_list_notes_sep_dim    ,
+    notes-sep     = \l__enotez_list_notes_sep_dim
   }
   {
     \AssignTemplateKeys
-    \bool_if:NT \l__enotez_totoc_bool
-      {
-        \bool_if:NT \l__enotez_hyperref_bool { \phantomsection }
-        \addcontentsline {toc} { \l__enotez_totoc_tl } { \l__enotez_list_name_tl }
-      }
+    \enotez_set_totoc:
     \enotez_list_heading:n { \l__enotez_list_name_tl }
     \enotez_list_preamble:
       \int_zero:N \l__enotez_tmpa_int
@@ -439,28 +485,24 @@
 
 \DeclareTemplateInterface {enotez-list} {list} {1}
   {
-    heading       : function 1 = \enotezlistheading{#1} ,
-    format        : tokenlist  = \footnotesize ,
-    number        : function 1 = \enmark{#1}   ,
-    number-format : tokenlist  = \normalfont   ,
-    list-type     : tokenlist  = description   ,
+    heading       : function 1 = \enotezlistheading {#1} ,
+    format        : tokenlist  = \footnotesize           ,
+    number        : function 1 = \enmark{#1}             ,
+    number-format : tokenlist  = \normalfont             ,
+    list-type     : tokenlist  = description
   }
 
 \DeclareTemplateCode {enotez-list} {list} {1}
   {
-    heading       = \enotez_list_heading:n          ,
+    heading       = \enotez_list_heading:n           ,
     format        = \l__enotez_list_format_tl        ,
-    number        = \enotez_list_number:n           ,
+    number        = \enotez_list_number:n            ,
     number-format = \l__enotez_list_number_format_tl ,
     list-type     = \l__enotez_list_type_tl
   }
   {
     \AssignTemplateKeys
-    \bool_if:NT \l__enotez_totoc_bool
-      {
-        \bool_if:NT \l__enotez_hyperref_bool { \phantomsection }
-        \addcontentsline { toc } { \l__enotez_totoc_tl } { \l__enotez_list_name_tl }
-      }
+    \enotez_set_totoc:
     \enotez_list_heading:n { \l__enotez_list_name_tl }
     \enotez_list_preamble:
       \int_zero:N \l__enotez_tmpa_int
@@ -657,7 +699,7 @@
             \bool_if:NTF \l__enotez_splitted_list_heading_bool
               { \exp_args:No \enotezsplitlistheading }
               {
-                \tl_if_eq:VnTF \l__enotez_split_tl { section }
+                \tl_if_eq:VnTF \l__enotez_split_tl {section}
                   { \exp_args:NNo \subsection* }
                   { \exp_args:NNo \section* }
               }
@@ -821,8 +863,6 @@
 \cs_new:Npn \EnotezCurrentSplitTitle {}
 
 % --------------------------------------------------------------------------
-% process the options:
-\ProcessKeysOptions {enotez}
 
 \AtBeginDocument
   {
@@ -960,6 +1000,10 @@
 2016/11/08 v0.9  - fix issues #6, #7, and #8
                  - remove caption patching and add \endnotemark and \endnotetext
 2017/04/24 v0.9a - fix wrong format of number in list
+2019/09/30 v0.10 - fix issus #14
+                 - don't allow package options any more
+                 - implement issue #17: new choices for the totoc option:
+                   `auto' and `part'
 
 % --------------------------------------------------------------------------
 % TODO:
