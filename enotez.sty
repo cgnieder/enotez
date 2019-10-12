@@ -31,8 +31,8 @@
 \RequirePackage {expl3,xparse,l3keys2e,xtemplate}
 \ProvidesExplPackage
   {enotez}
-  {2019/09/30}
-  {0.10}
+  {2019/10/12}
+  {0.10a}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -973,54 +973,53 @@
 \tl_set:Nn \l__enotez_section_tl        { \GetTranslation {enotez-section} }
 \tl_set:Nn \l__enotez_chapter_tl        { \GetTranslation {enotez-chapter} }
 
-\tex_endinput:D
+\file_input_stop:
 % --------------------------------------------------------------------------
 % HISTORY:
-2012/07/03 v0.1  - first public version on bitbucket
-2012/07/05 v0.2  - added preliminary `split' option
-                 - enable endnotes in captions with KOMA classes, `memoir' and
-                   the `caption' package
-2012/07/06 v0.2a - made the splitted list titles customizable
-2012/07/07 v0.3  - list-building rewritten due to a design flaw
-2012/07/24 v0.3a - adapted to deprecated functions in l3kernel and l3packages,
-                   removed debugging leftover
-2012/12/14 v0.3b - bug fix: works again when used with a KOMA class and an
-                   endnote is used inside a caption
-2012/12/30 v0.4  - new options `mark-cs' and `mark-format', redefinable
-                   commands \enmarkstyle and \enotezwritemark
-2012/01/18 v0.4a - added beginnings of internationalization -- this will need
-                   help from users speaking the actual languages
-2013/03/12 v0.5  - \AtNextEndnotesList, \AtEveryEndnotesList
-                 - use protected internal commands where appropriate
-                 - fix wrong endnote marks when used with the `caption'
-                   package
-2013/03/18 v0.5a - adapt to deprecated expl3 commands
-2013/04/06 v0.6  - \endnote sets \@currentlabel so endnotes can be referenced
-                   with \label{} and \ref{}
-2013/05/01 v0.7  - new option `backref' adds links from the notes in the list
-                   back to the notes in the text (needs `hyperref' loaded)
-                 - new: \AtEveryListSplit, \AfterEveryListSplit,
-                   \EnotezCurrentSplitTitle
-                 - new option: `list-heading'
-2013/08/03 v0.7a - corrected bug: `reset=true' now works as it should
-                 - added counter-format `symbols'
-2013/10/31 v0.7b - corrected bug: \acro_command_deprecated:NN should of course
-                   be \enotez_command_deprecated:NN
-2014/02/04 v0.7c - added a missing \par to the `paragraph' template for the
-                   list
-2015/06/24 v0.8  - bug fix in typesetting the split-headings
-                 - new command \NewSplitTitleTag
-2015/07/29 v0.8a - adapt to deprecated choice selection in keys
-2016/01/07 v0.8b - \prop_get:Nn => \prop_item:Nn
-2016/11/08 v0.9  - fix issues #6, #7, and #8
-                 - remove caption patching and add \endnotemark and \endnotetext
-2017/04/24 v0.9a - fix wrong format of number in list
-2019/09/30 v0.10 - fix issus #14
-                 - don't allow package options any more
-                 - implement issue #17: new choices for the totoc option:
-                   `auto', `subsection' and `part'
-                 - fix issue #18
-                 - implement issue #13
-                 % - new command \refendnote, fix issue #19
-                 - implement issue #9
-
+2012/07/03 v0.1   - first public version on bitbucket
+2012/07/05 v0.2   - added preliminary `split' option
+                  - enable endnotes in captions with KOMA classes, `memoir' and
+                    the `caption' package
+2012/07/06 v0.2a  - made the splitted list titles customizable
+2012/07/07 v0.3   - list-building rewritten due to a design flaw
+2012/07/24 v0.3a  - adapted to deprecated functions in l3kernel and l3packages,
+                    removed debugging leftover
+2012/12/14 v0.3b  - bug fix: works again when used with a KOMA class and an
+                    endnote is used inside a caption
+2012/12/30 v0.4   - new options `mark-cs' and `mark-format', redefinable
+                    commands \enmarkstyle and \enotezwritemark
+2012/01/18 v0.4a  - added beginnings of internationalization -- this will need
+                    help from users speaking the actual languages
+2013/03/12 v0.5   - \AtNextEndnotesList, \AtEveryEndnotesList
+                  - use protected internal commands where appropriate
+                  - fix wrong endnote marks when used with the `caption'
+                    package
+2013/03/18 v0.5a  - adapt to deprecated expl3 commands
+2013/04/06 v0.6   - \endnote sets \@currentlabel so endnotes can be referenced
+                    with \label{} and \ref{}
+2013/05/01 v0.7   - new option `backref' adds links from the notes in the list
+                    back to the notes in the text (needs `hyperref' loaded)
+                  - new: \AtEveryListSplit, \AfterEveryListSplit,
+                    \EnotezCurrentSplitTitle
+                  - new option: `list-heading'
+2013/08/03 v0.7a  - corrected bug: `reset=true' now works as it should
+                  - added counter-format `symbols'
+2013/10/31 v0.7b  - corrected bug: \acro_command_deprecated:NN should of course
+                    be \enotez_command_deprecated:NN
+2014/02/04 v0.7c  - added a missing \par to the `paragraph' template for the
+                    list
+2015/06/24 v0.8   - bug fix in typesetting the split-headings
+                  - new command \NewSplitTitleTag
+2015/07/29 v0.8a  - adapt to deprecated choice selection in keys
+2016/01/07 v0.8b  - \prop_get:Nn => \prop_item:Nn
+2016/11/08 v0.9   - fix issues #6, #7, and #8
+                  - remove caption patching and add \endnotemark and \endnotetext
+2017/04/24 v0.9a  - fix wrong format of number in list
+2019/09/30 v0.10  - fix issus #14
+                  - don't allow package options any more
+                  - implement issue #17: new choices for the totoc option:
+                    `auto', `subsection' and `part'
+                  - fix issue #18
+                  - implement issue #13
+                  - implement issue #9
+2019/10/12 v0.10a - remove unnecessary package dependencies
