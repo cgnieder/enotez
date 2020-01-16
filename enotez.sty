@@ -8,7 +8,7 @@
 % Web:    https://bitbucket.org/cgnieder/enotez/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2012--2019 Clemens Niederberger
+% Copyright 2012--2020 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3
@@ -31,8 +31,8 @@
 \RequirePackage {expl3,xparse,l3keys2e,xtemplate}
 \ProvidesExplPackage
   {enotez}
-  {2019/10/12}
-  {0.10a}
+  {2020/01/16}
+  {0.10b}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -690,7 +690,7 @@
 \cs_generate_variant:Nn \tl_set_rescan:Nnn { NnV }
 
 \cs_new_protected:Npn \enotez_first_upper:n #1
-  { \tl_upper_case:n { \tl_head:n {#1} } \tl_tail:n {#1} }
+  { \text_titlecase_first:n {#1} }
 \cs_generate_variant:Nn \enotez_first_upper:n { V }
 
 \tl_new:N \l__enotez_last_split_id_tl
@@ -1023,3 +1023,4 @@
                   - implement issue #13
                   - implement issue #9
 2019/10/12 v0.10a - remove unnecessary package dependencies
+2020/01/16 v0.10b - adapt to renaming of string case changing functions
