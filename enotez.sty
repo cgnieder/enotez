@@ -114,12 +114,9 @@
 \skip_set_eq:NN \l__enotez_list_postamble_skip \medskipamount
 
 \int_new:N  \g__enotez_endnote_id_int
-\int_zero:N \g__enotez_endnote_id_int
 \int_new:N  \g__enotez_endnote_mark_int
-\int_zero:N \g__enotez_endnote_mark_int
 \newcounter {endnote}
 \int_new:N  \g__enotez_list_printed_int
-\int_zero:N \g__enotez_list_printed_int
 \int_new:N  \l__enotez_tmpa_int
 
 \prop_new:N \g__enotez_endnote_text_prop
@@ -330,7 +327,8 @@
 
 \cs_new_protected:Npn \enotez@note #1#2#3#4#5#6#7
   {
-    \tl_gset:cn {enotez@#1@note} {#2}
+    \tl_gclear_new:c {g__enotez_#1_note_tl}
+    \tl_gset:cn {g__enotez_#1_note_tl} {#2}
     \prop_gput:Nnn \g__enotez_endnote_mark_prop    {#1} {#2}
     \prop_gput:Nnn \g__enotez_endnote_split_prop   {#1} {#3}
     \prop_gput:Nnn \g__enotez_endnote_sect_prop    {#1} {#4}
@@ -345,7 +343,7 @@
     \cs_set_protected:Npn \enotez@note #1#2#3#4#5#6#7
       {
         \tl_set:Nn \l__enotez_change_tl {#2}
-        \tl_if_eq:cNF {enotez@#1@note} \l__enotez_change_tl
+        \tl_if_eq:cNF {g__enotez_#1_note_tl} \l__enotez_change_tl
           {
             \@latex@warning@no@line
               { Endnotes~may~have~changed.~Rerun~to~get~them~right. }
