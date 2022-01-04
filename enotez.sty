@@ -202,8 +202,10 @@
         \enotezwritemark { \hyperlink {enz.#1} { \enmarkstyle #2 } }
         \bool_if:NT \l__enotez_hyperbackref_bool
           {
-            \box_move_up:nn {1em}
-              { \hbox:n { \hypertarget {enz.#1.backref} { } } }
+            \smash{
+              \box_move_up:nn {1em}
+                { \hbox:n { \hypertarget {enz.#1.backref} { } } }
+            }
           }
       }
       { \enotezwritemark { \enmarkstyle #2 } }
