@@ -8,7 +8,7 @@
 % Web:    https://github.com/cgnieder/enotez/
 % E-Mail: contact@mychemistry.eu
 % --------------------------------------------------------------------------
-% Copyright 2012--2020 Clemens Niederberger
+% Copyright 2012--2022 Clemens Niederberger
 % 
 % This work may be distributed and/or modified under the
 % conditions of the LaTeX Project Public License, either version 1.3c
@@ -31,8 +31,8 @@
 \RequirePackage {expl3,xparse,l3keys2e,xtemplate}
 \ProvidesExplPackage
   {enotez}
-  {2020/12/13}
-  {0.10c}
+  {2022/01/04}
+  {0.10d}
   {Endnotes for LaTeX2e}
 
 % --------------------------------------------------------------------------
@@ -488,6 +488,7 @@
     notes-sep     = \l__enotez_list_notes_sep_dim
   }
   {
+    \group_begin:
     \AssignTemplateKeys
     \enotez_set_totoc:
     \enotez_list_heading:n { \l__enotez_list_name_tl }
@@ -514,6 +515,7 @@
       }
       {}
     \enotez_list_postamble:
+    \group_end:
   }
 
 \DeclareTemplateInterface {enotez-list} {list} {1}
