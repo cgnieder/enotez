@@ -28,8 +28,8 @@
 % If you have any ideas, questions, suggestions or bugs to report, please
 % feel free to contact me.
 % --------------------------------------------------------------------------
-
-\documentclass{article}
+\documentclass{scrartcl}
+% \documentclass{article}
 % \documentclass{scrartcl}
 % \documentclass{memoir}
 \usepackage[english]{babel}
@@ -47,8 +47,8 @@
   % reset,
   backref,
 % customize the titles in between, e.g.:
-%   split-heading=\subsection*{#1},
-%   split-title=\noindent<ref> <name>
+  % split-heading=\subsection*{#1},
+  % split-title=<name> <ref>
 }
 
 \usepackage{fnpct}
@@ -61,8 +61,8 @@
 \tableofcontents
 
 \section{Test}
-Text\endnote{\kant[1]}. Text\endnote{\kant[2]}. Text\endnote{This time
-with a \textbf{nested}\endnote{\kant[3]}\endnote{\kant[4]} endnote.}.
+Text\endnote{\kant[1]}. Text\endnote{\kant[2]}. Text\endnote{This time with a
+  \textbf{nested}\endnote{\kant[3]}\endnote{\kant[4]} endnote.}.
 Text\endnote{\kant[5]}\endnote{\kant[6]}.
 
 \begin{figure}[htp]
@@ -84,19 +84,20 @@ Text\endnote{\kant[5]}\endnote{\kant[6]}.
 \tableofcontents
 
 \section{Test}
-Text\endnote{\kant[1]}. Text\endnote{\kant[2]}. Text\endnote{This time
-with a \textbf{nested}\endnote{\kant[3]}\endnote{\kant[4]} endnote.}.
+Text\endnote{\kant[1]}. Text\endnote{\kant[2]}. Text\endnote{This time with a
+  \textbf{nested}\endnote{\kant[3]}\endnote{\kant[4]} endnote.}.
 Text\endnote{\kant[5]}\endnote{\kant[6]}.
+
 \begin{figure}[htp]
- \centering
- \includegraphics[width=.4\linewidth]{example-image-a}
- \caption[caption]{Some text\endnote{An endnote with a nested endnote\endnote{\kant[7]}
- inside a figure caption.}.}
+  \centering
+  \includegraphics[width=.4\linewidth]{example-image-a}
+  \caption[caption]{Some text\endnote{An endnote with a nested
+      endnote\endnote{\kant[7]} inside a figure caption.}.}
 \end{figure}
 
 \section{Test}
-Text\endnote{\kant[8]}. Text\endnote{\kant[9]}. Text\endnote{This time
-with a \textbf{nested}\endnote{\kant[10]} endnote.}. Text\endnote{\kant[11]}.
+Text\endnote{\kant[8]}. Text\endnote{\kant[9]}. Text\endnote{This time with a
+  \textbf{nested}\endnote{\kant[10]} endnote.}. Text\endnote{\kant[11]}.
 
 \appendix
 \printendnotes
