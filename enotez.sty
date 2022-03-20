@@ -6,7 +6,7 @@
 % --------------------------------------------------------------------------
 % Clemens Niederberger
 % Web:    https://github.com/cgnieder/enotez/
-% E-Mail: contact@mychemistry.eu
+% E-Mail: clemens@cnltx.de
 % --------------------------------------------------------------------------
 % Copyright 2012--2022 Clemens Niederberger
 % 
@@ -561,62 +561,39 @@
     \bool_if:NT \l__enotez_hyperfootnotes_bool
       { \box_move_up:nn {1em} { \hbox:n { \hypertarget {enz.#1} { } } } }
     \tl_use:N \l__enotez_list_number_format_tl
-    \tl_if_eq:nxTF {a} { \prop_item:Nn \g__enotez_endnote_man_prop {#1} }
+    \bool_lazy_and:nnTF
+      { \l__enotez_hyperfootnotes_bool }
+      { \l__enotez_hyperbackref_bool }
       {
-        \bool_if:nTF
-          { \l__enotez_hyperfootnotes_bool && \l__enotez_hyperbackref_bool }
-          {
-            \exp_args:Nnx
-            \hyperlink {enz.#1.backref}
-              { \exp_not:V \l__enotez_endnote_mark_tl }
-          }
-          { \prop_item:Nn \g__enotez_endnote_mark_prop {#1} }
+        \exp_args:Nnx
+        \hyperlink {enz.#1.backref}
+          { \exp_not:V \l__enotez_endnote_mark_tl }
       }
       {
-        \bool_if:nTF
-          { \l__enotez_hyperfootnotes_bool && \l__enotez_hyperbackref_bool }
-          {
-            \exp_args:Nnx
-            \hyperlink {enz.#1.backref}
-              { \exp_not:V \l__enotez_endnote_mark_tl }
-          }
-          { \tl_use:N \l__enotez_endnote_mark_tl }
+        \str_if_eq:neTF {a} { \prop_item:Nn \g__enotez_endnote_man_prop {#1} }
+          { \prop_item:Nn \g__enotez_endnote_mark_prop {#1} }
+          { \exp_not:V \l__enotez_endnote_mark_tl }
       }
   }
-
+\cs_generate_variant:Nn \str_if_eq:nnTF {ne}
+  
 % --------------------------------------------------------------------------
 % determine which note's next:
 \cs_new_protected:Npn \enotez_get_note:nn #1#2
   {
-    \bool_if:nTF {#1}
-      {
-        \prop_get:NnN \g__enotez_endnote_mark_prop {#2} \l__enotez_endnote_mark_tl
-        \prop_get:NnN \g__enotez_endnote_text_prop {#2} \g__enotez_endnote_text_tl
-        \tl_gset_eq:NN
-          \g__enotez_endnote_text_tl
-          \g__enotez_endnote_text_tl
-        \bool_set_true:N \l__enotez_print_note_bool
-      }
+    \prop_get:NnN \g__enotez_endnote_mark_prop {#2} \l__enotez_endnote_mark_tl
+    \prop_get:NnN \g__enotez_endnote_text_prop {#2} \g__enotez_endnote_text_tl
+    \tl_gset_eq:NN
+      \g__enotez_endnote_text_tl
+      \g__enotez_endnote_text_tl
+    \bool_set_true:N \l__enotez_print_note_bool
+    \bool_if:nF {#1}
       {
         \prop_get:NnN \g__enotez_endnote_split_prop {#2} \l__enotez_tmpa_tl
-        \bool_if:NTF \l__enotez_split_bool
-          {
-            \bool_set_true:N \l__enotez_print_note_bool
-            \tl_set:Nx \l__enotez_endnote_mark_tl
-              { \prop_item:Nn \g__enotez_endnote_mark_prop {#2} }
-            \tl_gset:Nx \g__enotez_endnote_text_tl
-              { \prop_item:Nn \g__enotez_endnote_text_prop {#2} }
-          }
+        \bool_if:NF \l__enotez_split_bool
           {
             \int_compare:nTF { \l__enotez_tmpa_tl = \g__enotez_list_printed_int }
-              {
-                \bool_set_true:N \l__enotez_print_note_bool
-                \tl_set:Nx \l__enotez_endnote_mark_tl
-                  { \prop_item:Nn \g__enotez_endnote_mark_prop {#2} }
-                \tl_gset:Nx \g__enotez_endnote_text_tl
-                  { \prop_item:Nn \g__enotez_endnote_text_prop {#2} }
-                \prop_gremove:Nn  \g__enotez_endnote_split_prop {#2}
-              }
+              { \prop_gremove:Nn  \g__enotez_endnote_split_prop {#2} }
               { \bool_set_false:N \l__enotez_print_note_bool }
           }
       }
