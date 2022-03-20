@@ -312,7 +312,7 @@
   }
 
 % a try to check if a rerun is necessary:
-\AtEndDocument
+\hook_gput_code:nnn {enddocument} {enotez}
   {
     \cs_set_protected:Npn \enotez@note #1#2#3#4#5#6#7
       {
@@ -838,13 +838,13 @@
 
 % --------------------------------------------------------------------------
 
-\AtBeginDocument
+\hook_gput_code:nnn {begindocument} {enotez}
   {
     \bool_if:NT \l__enotez_split_bool
       {
         \tl_if_eq:VnTF \l__enotez_split_tl {section}
           {
-            \tl_put_left:Nn \section
+            \hook_gput_code:nnn {cmd/section/before} {enotez}
               {
                 \int_gincr:N \g__enotez_list_printed_int
                 \bool_if:NT \l__enotez_reset_bool
@@ -852,7 +852,7 @@
               }
           }
           {
-            \tl_put_left:Nn \chapter
+            \hook_gput_code:nnn {cmd/chapter/before} {enotez}
               {
                 \int_gincr:N \g__enotez_list_printed_int
                 \bool_if:NT \l__enotez_reset_bool
