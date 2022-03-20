@@ -279,7 +279,7 @@
           { \int_eval:n { \value{chapter} } }
           { \int_eval:n { \value{section} } }
       }
-      {a}
+      { \quark_if_no_value:nTF {#1} {a} {m} }
       {#2}
   }
 
