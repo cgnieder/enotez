@@ -63,10 +63,12 @@
 
 % --------------------------------------------------------------------------
 % variants of kernel functions
-\cs_generate_variant:Nn \tl_if_eq:nnTF { Vn , nx }
-\cs_generate_variant:Nn \tl_if_eq:nnT  { xx , V }
-\cs_generate_variant:Nn \str_if_in:nnT { o }
-\cs_generate_variant:Nn \cs_set:Npn    { cpV }
+\cs_generate_variant:Nn \tl_if_eq:nnTF {Vn,nx}
+\cs_generate_variant:Nn \tl_if_eq:nnT  {xx,V}
+\cs_generate_variant:Nn \str_if_in:nnT {o}
+\cs_generate_variant:Nn \cs_set:Npn    {cpV}
+\cs_generate_variant:Nn \tl_set:Nn     {Ne}
+\cs_generate_variant:Nn \tl_gset:Nn    {Ne}
 
 % --------------------------------------------------------------------------
 % variables:
@@ -257,66 +259,28 @@
 
 \NewDocumentCommand \enotezdisable {} { \enotez_disable: }
 
-\cs_new_protected:Npn \enotez_endnote_text:nn #1#2
+\cs_set_protected:Npn \enotez_endnote_text:nn #1#2
   {
-    \tl_set:Nn \l__enotez_tmpa_tl {chapter}
-    \quark_if_no_value:nTF {#1}
+    \enotez_save_note:eeeeenn
+      { \int_use:N \g__enotez_endnote_id_int }
+      { \quark_if_no_value:nTF {#1} { \theendnote } {#1} }
+      { \int_use:N \g__enotez_list_printed_int }
       {
-        \bool_if:nTF
-          {
-            \l__enotez_split_bool
-            &&
-            \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl
-          }
-          {
-            \enotez_save_note:xxxxxnn
-              { \int_use:N \g__enotez_endnote_id_int }
-              { \theendnote }
-              { \int_use:N \g__enotez_list_printed_int }
-              { \thechapter }
-              { \int_eval:n { \value{chapter} } }
-              {a}
-              {#2}
-          }
-          {
-            \enotez_save_note:xxxxxnn
-              { \int_use:N \g__enotez_endnote_id_int }
-              { \theendnote }
-              { \int_use:N \g__enotez_list_printed_int }
-              { \thesection }
-              { \int_eval:n { \value{section} } }
-              {a}
-              {#2}
-          }
+        \bool_lazy_and:nnTF
+          { \l__enotez_split_bool }
+          {  \str_if_eq_p:Vn \l__enotez_split_tl {chapter} }
+          { \thechapter }
+          { \thesection }
       }
       {
-        \bool_if:nTF
-          {
-            \l__enotez_split_bool
-            &&
-            \tl_if_eq_p:NN \l__enotez_split_tl \l__enotez_tmpa_tl
-          }
-          {
-            \enotez_save_note:xnxxxnn
-              { \int_use:N \g__enotez_endnote_id_int }
-              {#1}
-              { \int_use:N \g__enotez_list_printed_int }
-              { \thechapter }
-              { \int_eval:n { \value{chapter} } }
-              {m}
-              {#2}
-          }
-          {
-            \enotez_save_note:xnxxxnn
-              { \int_use:N \g__enotez_endnote_id_int }
-              {#1}
-              { \int_use:N \g__enotez_list_printed_int }
-              { \thesection }
-              { \int_eval:n { \value{section} } }
-              {m}
-              {#2}
-          }
+        \bool_lazy_and:nnTF
+          { \l__enotez_split_bool }
+          {  \str_if_eq_p:Vn \l__enotez_split_tl {chapter} }
+          { \int_eval:n { \value{chapter} } }
+          { \int_eval:n { \value{section} } }
       }
+      {a}
+      { \exp_not:n {#2} }
   }
 
 % --------------------------------------------------------------------------
@@ -333,7 +297,7 @@
     \legacy_if:nT {@filesw}
       { \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } }
   }
-\cs_generate_variant:Nn \enotez_save_note:nnnnnnn { xxxxx , xnxxx }
+\cs_generate_variant:Nn \enotez_save_note:nnnnnnn {eeeee}
 
 \cs_new_protected:Npn \enotez@note #1#2#3#4#5#6#7
   {
@@ -498,6 +462,9 @@
     notes-sep     : length     = .5\baselineskip
   }
 
+\cs_new:Npn \enotez_list_heading:n #1 {#1}
+\cs_generate_variant:Nn \enotez_list_heading:n {V}
+  
 \DeclareTemplateCode {enotez-list} {paragraph} {1}
   {
     heading       = \enotez_list_heading:n           ,
@@ -509,7 +476,7 @@
   {
     \group_begin:
     \AssignTemplateKeys
-    \enotez_list_heading:n { \l__enotez_list_name_tl }
+    \enotez_list_heading:V \l__enotez_list_name_tl
     \enotez_set_totoc:
     \enotez_list_preamble:
     \enotez_build_print_list:nnnn {#1}
@@ -675,8 +642,8 @@
     \tl_replace_all:NVn #1 \l__enotez_replace_split_title_tag_tl {#3}
     \tl_set:Nx #1 { \tl_to_str:N #1 }
   }
-\cs_generate_variant:Nn \tl_replace_all:Nnn { NV }
-\cs_generate_variant:Nn \__enotez_replace_split_title_tag:Nnn { NnV , Nnx }
+\cs_generate_variant:Nn \tl_replace_all:Nnn {NV}
+\cs_generate_variant:Nn \__enotez_replace_split_title_tag:Nnn {NnV,Nnx}
 
 % #1: tl for current title
 % #2: title with tags
@@ -685,9 +652,9 @@
   {
     \group_begin:
       % needs to be expanded, since it is \GetTranslation {...} :
-      \tl_set:Nf \l__enotez_tmpa_tl {#2}
+      \tl_set:Ne \l__enotez_tmpa_tl {#2}
       % stringify:
-      \tl_set:Nx \l__enotez_tmpa_tl { \tl_to_str:N \l__enotez_tmpa_tl }
+      \tl_set:Ne \l__enotez_tmpa_tl { \tl_to_str:N \l__enotez_tmpa_tl }
       \prop_map_inline:Nn \l__enotez_split_title_replacements_prop
         {
           \tl_set:Nn \l__enotez_tmpb_tl {##1}
@@ -704,13 +671,13 @@
       \tl_gset_eq:NN #1 \l__enotez_tmpa_tl
     \group_end:
   }
-\cs_generate_variant:Nn \enotez_read_splitted_title:Nnn { NV }
-\cs_generate_variant:Nn \tl_replace_all:Nnn { NVx }
-\cs_generate_variant:Nn \tl_set_rescan:Nnn { NnV }
+\cs_generate_variant:Nn \enotez_read_splitted_title:Nnn {NV}
+\cs_generate_variant:Nn \tl_replace_all:Nnn {NVx}
+\cs_generate_variant:Nn \tl_set_rescan:Nnn {NnV}
 
 \cs_new_protected:Npn \enotez_first_upper:n #1
   { \text_titlecase_first:n {#1} }
-\cs_generate_variant:Nn \enotez_first_upper:n { V }
+\cs_generate_variant:Nn \enotez_first_upper:n {V}
 
 \tl_new:N \l__enotez_last_split_id_tl
 
@@ -721,22 +688,22 @@
       {
         \tl_if_eq:NNF \l__enotez_tmpa_tl \l__enotez_last_split_id_tl
           {
-            \tl_if_eq:VnTF \l__enotez_split_tl { section }
-              { \tl_gset:Nf \g__enotez_actual_sectioning_tl { \l__enotez_section_tl } }
-              { \tl_gset:Nf \g__enotez_actual_sectioning_tl { \l__enotez_chapter_tl } }
+            \tl_if_eq:VnTF \l__enotez_split_tl {section}
+              { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \l__enotez_section_tl } }
+              { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \l__enotez_chapter_tl } }
             \enotez_read_splitted_title:NVn
               \EnotezCurrentSplitTitle
               \l__enotez_splitted_title_tl
               {#1}
             \enotez_split_list_preamble:
             \bool_if:NTF \l__enotez_splitted_list_heading_bool
-              { \exp_args:No \enotezsplitlistheading }
+              { \exp_args:NV \enotezsplitlistheading }
               {
                 \tl_if_eq:VnTF \l__enotez_split_tl {section}
-                  { \exp_args:NNo \subsection* }
-                  { \exp_args:NNo \section* }
+                  { \exp_args:NNV \subsection* }
+                  { \exp_args:NNV \section* }
               }
-            { \EnotezCurrentSplitTitle }% this is the argument to the sectioning command
+            \EnotezCurrentSplitTitle % this is the argument to the sectioning command
             \enotez_split_list_postamble:
           }
       }
@@ -765,11 +732,7 @@
           { \UseInstance {enotez-list} {#2} }
         {#1}
         \bool_if:NF \l__enotez_split_bool
-          {
-            \bool_if:NT \l__enotez_reset_bool
-              { \setcounter {endnote} {0} }
-            \int_gincr:N \g__enotez_list_printed_int
-          }
+          { \int_gincr:N \g__enotez_list_printed_int }
         \bool_if:NT \l__enotez_reset_bool
           { \setcounter {endnote} {0} }
       }
@@ -977,7 +940,7 @@
 \DeclareTranslation {Italian}   {enotez-section} {sezione}
 \DeclareTranslation {Spanish}   {enotez-section} {secci\'{o}n}
 \DeclareTranslation {Turkish}   {enotez-section} {B\"{o}l\"{u}m}
-\DeclareTranslation {Brazilian} {enotez-section} {seção}
+\DeclareTranslation {Brazilian} {enotez-section} {se\c{c}\~ao}
 
 \DeclareTranslationFallback     {enotez-chapter} {chapter}
 \DeclareTranslation {Catalan}   {enotez-chapter} {cap\'{\i}tol}
@@ -989,7 +952,7 @@
 \DeclareTranslation {Italian}   {enotez-chapter} {capitolo}
 \DeclareTranslation {Spanish}   {enotez-chapter} {cap\'{\i}tulo}
 \DeclareTranslation {Turkish}   {enotez-chapter} {B\"{o}l\"{u}m}
-\DeclareTranslation {Brazilian} {enotez-chapter} {capítulo}
+\DeclareTranslation {Brazilian} {enotez-chapter} {cap\'itulo}
 
 \tl_set:Nn \l__enotez_splitted_title_tl { \GetTranslation {enotez-splitted-title} }
 \tl_set:Nn \l__enotez_list_name_tl      { \GetTranslation {enotez-title} }
