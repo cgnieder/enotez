@@ -259,7 +259,7 @@
 
 \NewDocumentCommand \enotezdisable {} { \enotez_disable: }
 
-\cs_set_protected:Npn \enotez_endnote_text:nn #1#2
+\cs_new_protected:Npn \enotez_endnote_text:nn #1#2
   {
     \enotez_save_note:eeeeenn
       { \int_use:N \g__enotez_endnote_id_int }
@@ -280,7 +280,7 @@
           { \int_eval:n { \value{section} } }
       }
       {a}
-      { \exp_not:n {#2} }
+      {#2}
   }
 
 % --------------------------------------------------------------------------
