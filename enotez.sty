@@ -261,7 +261,7 @@
 
 \cs_new_protected:Npn \enotez_endnote_text:nn #1#2
   {
-    \enotez_save_note:eeeeenn
+    \enotez_save_note:eeeeeen
       { \int_use:N \g__enotez_endnote_id_int }
       { \quark_if_no_value:nTF {#1} { \theendnote } {#1} }
       { \int_use:N \g__enotez_list_printed_int }
@@ -297,7 +297,7 @@
     \legacy_if:nT {@filesw}
       { \iow_now:Nn \@auxout { \enotez@note {#1} {#2} {#3} {#4} {#5} {#6} {#7} } }
   }
-\cs_generate_variant:Nn \enotez_save_note:nnnnnnn {eeeee}
+\cs_generate_variant:Nn \enotez_save_note:nnnnnnn {eeeeee}
 
 \cs_new_protected:Npn \enotez@note #1#2#3#4#5#6#7
   {
