@@ -667,7 +667,7 @@
           {
             \tl_if_eq:VnTF \l__enotez_split_tl {section}
               { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \text_expand:V \l__enotez_section_tl } }
-              { \tl_gset:Nf \g__enotez_actual_sectioning_tl { \text_expand:V \l__enotez_chapter_tl } }
+              { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \text_expand:V \l__enotez_chapter_tl } }
             \enotez_read_splitted_title:NVn
               \EnotezCurrentSplitTitle
               \l__enotez_splitted_title_tl
