@@ -629,7 +629,7 @@
   {
     \group_begin:
       % needs to be expanded, since it is \GetTranslation {...} :
-      \tl_set:Ne \l__enotez_tmpa_tl {#2}
+      \tl_set:Ne \l__enotez_tmpa_tl { \text_expand:n {#2} }
       % stringify:
       \tl_set:Ne \l__enotez_tmpa_tl { \tl_to_str:N \l__enotez_tmpa_tl }
       \prop_map_inline:Nn \l__enotez_split_title_replacements_prop
@@ -666,8 +666,8 @@
         \tl_if_eq:NNF \l__enotez_tmpa_tl \l__enotez_last_split_id_tl
           {
             \tl_if_eq:VnTF \l__enotez_split_tl {section}
-              { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \l__enotez_section_tl } }
-              { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \l__enotez_chapter_tl } }
+              { \tl_gset:Ne \g__enotez_actual_sectioning_tl { \text_expand:V \l__enotez_section_tl } }
+              { \tl_gset:Nf \g__enotez_actual_sectioning_tl { \text_expand:V \l__enotez_chapter_tl } }
             \enotez_read_splitted_title:NVn
               \EnotezCurrentSplitTitle
               \l__enotez_splitted_title_tl
@@ -687,6 +687,7 @@
     \prop_get:NnN \g__enotez_endnote_split_prop {#1} \l__enotez_last_split_id_tl
   }
 \cs_generate_variant:Nn \enotez_get_split_title:n {x}
+\cs_generate_variant:Nn \text_expand:n {V}
 
 % --------------------------------------------------------------------------
 % the marks in the list:
