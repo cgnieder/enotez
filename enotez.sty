@@ -559,7 +559,7 @@
 \cs_new_protected:Npn \enotez_write_list_number:n #1
   {
     \bool_if:NT \l__enotez_hyperfootnotes_bool
-      { \box_move_up:nn {1em} { \hbox:n { \hypertarget {enz.#1} { } } } }
+      { \Hy@raisedlink { \hypertarget {enz.#1} { } } }
     \tl_use:N \l__enotez_list_number_format_tl
     \bool_lazy_and:nnTF
       { \l__enotez_hyperfootnotes_bool }
